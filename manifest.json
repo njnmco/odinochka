@@ -2,5 +2,13 @@
     "name": "/home/nfultz/projects/odinochka",
     "version": "0.0.1",
     "description": "Open source tab vault",
+    "permissions": ["contextMenus", "tabs", "unlimitedStorage"],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+    },
+    "browser_action": {
+    },
+    "options_page": "options.html",
     "manifest_version":2
 }
