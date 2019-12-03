@@ -21,11 +21,37 @@ chrome.runtime.onInstalled.addListener(function(){
 // Listeners
 
 // handle clicks to our extension icon
-chrome.browserAction.onClicked.addListener(function() {
+chrome.browserAction.onClicked.addListener(function(tab) {
 	// simply go to our search history page in a new tab
-	chrome.tabs.create({
-		url: "odinochka.html"
-	});
+    console.log(tab)
+    var tx = db.transaction('tabgroups', 'readwrite');
+    var store = tx.objectStore('tabgroups');
+	store.openCursor().onsuccess = function(event) {
+	  // Get the old value that we want to update
+	  var data = event.target.result.value || {
+            ts: new Date().getTime(),
+            name: "Untitled Group",
+            tabs: []
+      }
+
+      data.tabs.unshift({
+        title: tab.title,
+        url:tab.url,
+        favicon:tab.favIconUrl,
+        pinned: tab.pinned
+      })
+
+	  // Put this updated object back into the database.
+	  var requestUpdate = store.put(data);
+	  requestUpdate.onsuccess = function(event) {
+	      chrome.tabs.remove(tab.id)
+	      // Success - the data is updated!
+	      chrome.tabs.create({
+	   	   url: "odinochka.html"
+	      });
+	  };
+	};
+
 });
 
 
@@ -74,10 +100,9 @@ DBOpenRequest.onupgradeneeded = function(event) {
   };
 
   // Create an objectStore for this database
-  var objectStore = db.createObjectStore("tabgroupps", { keyPath: "ts" });
+  var objectStore = db.createObjectStore("tabgroups", { keyPath: "ts" });
 
   // define what data items the objectStore will contain
     
-  objectStore.createIndex("ts", "ts", { unique: false });
-  objectStore.createIndex("href", "href", { unique: false });
+  objectStore.createIndex("href", ["tabs", "url"]);
 };
