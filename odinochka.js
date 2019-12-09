@@ -2,6 +2,47 @@
 render()
 
 
+function groupclick(event) {
+  var me = event.target;
+  var ts = parseInt(event.target.parentNode.id);
+
+  if( event.clientX > event.target.offsetLeft) {
+      // if inside box, make editable
+      if(me.contentEditable == "false"){
+            me.oldText = me.innerText;
+            me.contentEditable = "true";
+            me.focus();
+      }
+  } else {
+        // delete it
+        window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+            var db = event.target.result;
+
+            var tx = db.transaction('tabgroups', 'readwrite');
+            var store = tx.objectStore('tabgroups');
+
+            store.delete(ts).onsuccess = function(event) {
+                me = me.parentNode;
+                me.parentNode.removeChild(me)
+            }
+
+        }
+  
+  }
+  
+}
+
+function groupblur(event) {
+  var me = event.target;
+  var ts = parseInt(event.target.parentNode.id);
+
+  if(me.contentEditable == "true") {
+      me.contentEditable = "false"
+      console.log([me.innerText, me.oldText])
+  }
+
+}
+
 function tabclick(event) {
 
     {
@@ -77,6 +118,9 @@ function render() {
                 var header = document.createElement("header");
                 header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
                 header.className = "tab";
+                header.ondblclick = groupclick;
+                header.onblur = groupblur;
+                header.contentEditable = false;
                 ddiv.appendChild(header);
 
                 for(var tab of data.tabs) {
