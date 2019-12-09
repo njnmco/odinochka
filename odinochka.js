@@ -5,30 +5,50 @@ render()
 function groupclick(event) {
   var me = event.target;
   var ts = parseInt(event.target.parentNode.id);
+  var shiftclick = event.shiftKey
 
-  if( event.clientX > event.target.offsetLeft) {
+  if( event.clientX > event.target.offsetLeft && !shiftclick) {
       // if inside box, make editable
       if(me.contentEditable == "false"){
             me.oldText = me.innerText;
             me.contentEditable = "true";
             me.focus();
       }
-  } else {
-        // delete it
-        window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-            var db = event.target.result;
+      return;
+  }
 
-            var tx = db.transaction('tabgroups', 'readwrite');
-            var store = tx.objectStore('tabgroups');
+  // delete it
+  window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+      var db = event.target.result;
 
+      var tx = db.transaction('tabgroups', 'readwrite');
+      var store = tx.objectStore('tabgroups');
+
+      var mydelete = function() {
             store.delete(ts).onsuccess = function(event) {
                 me = me.parentNode;
                 me.parentNode.removeChild(me)
             }
+      }
+
+      if(shiftclick) {
+
+        store.get(ts).onsuccess = function(event) {
+            var data = event.target.result
+
+            chrome.windows.create({url: data.urls})
+
+            // clean up
+            mydelete();
 
         }
-  
+
+      } else {
+          mydelete();
+      }
+
   }
+  
   
 }
 
