@@ -36,9 +36,45 @@ function groupblur(event) {
   var me = event.target;
   var ts = parseInt(event.target.parentNode.id);
 
+  trimmer = function(s){
+      var i = s.indexOf("@");
+      if(i != -1) s = s.substr(0, i);
+      return s.trim()
+  }
+
   if(me.contentEditable == "true") {
       me.contentEditable = "false"
       console.log([me.innerText, me.oldText])
+
+      var newtxt = trimmer(me.innerText);
+      var oldtxt = trimmer(me.oldText);
+
+      if(newtxt != oldtxt) {
+      
+        window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+            var db = event.target.result;
+
+            var tx = db.transaction('tabgroups', 'readwrite');
+            var store = tx.objectStore('tabgroups');
+
+            store.get(ts).onsuccess = function(event) {
+                    var data = event.target.result;
+                    data.name = newtxt;
+                    store.put(data).onsuccess = function(event) {
+                        var prettyTime = new Date();
+                        prettyTime.setTime(data.ts);
+                        me.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
+                    }
+            }
+
+        }
+      
+      
+      
+      
+      
+      }
+
   }
 
 }
