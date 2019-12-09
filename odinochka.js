@@ -65,6 +65,15 @@ function render() {
 
                 ddiv.id = data.ts;
 
+                var prettyTime = new Date();
+                prettyTime.setTime(data.ts);
+
+
+                var header = document.createElement("header")
+                header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`
+
+                ddiv.appendChild(header);
+
                 for(var tab of data.tabs) {
                     var a = document.createElement("a");
                     a.innerText = tab.title;
