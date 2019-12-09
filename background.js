@@ -59,6 +59,15 @@ chrome.runtime.onInstalled.addListener(function(){
 
 function saveTabs(tabs, newWin=true) {
 
+    fixGreatSuspender = function(tab) {
+        if(tab.url.startsWith("chrome-extension") &&
+           tab.url.indexof("/suspended.html#") > -1) {
+                tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
+        }
+        return tab;
+    }
+
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         var db = event.target.result;
 
@@ -77,6 +86,7 @@ function saveTabs(tabs, newWin=true) {
           for(var tab of tabs.slice().reverse()){
               if(tab.url == "chrome://newtab/") continue;
               if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
+              tab = fixGreatSuspender(tab);
               data.tabs.unshift({
                 title: tab.title,
                 url:tab.url,
