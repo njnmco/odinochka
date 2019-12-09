@@ -16,6 +16,35 @@ chrome.runtime.onInstalled.addListener(function(){
 		  title: "save all",
 		  contexts: ["browser_action"],
 	});
+
+    // Let us open our database
+    var DBOpenRequest = window.indexedDB.open("odinochka", 5);
+
+    // Two event handlers for opening the database.
+    DBOpenRequest.onerror = function(event) {
+      console.log('Error loading database.');
+      console.log(event);
+    };
+
+    DBOpenRequest.onsuccess = function(event) {
+      console.log('<li>Database initialised.');
+    };
+
+    DBOpenRequest.onupgradeneeded = function(event) {
+      var db = event.target.result;
+     
+      db.onerror = function(event) {
+        console.log('Error loading database.');
+        console.log(event);
+      };
+
+      // Create an objectStore for this database
+      var objectStore = db.createObjectStore("tabgroups", { keyPath: "ts" });
+
+      // define what data items the objectStore will index
+      objectStore.createIndex("urls", "urls", {multiEntry: true});
+    };
+ 
 });
 
 // Listeners
@@ -24,33 +53,43 @@ chrome.runtime.onInstalled.addListener(function(){
 chrome.browserAction.onClicked.addListener(function(tab) {
 	// simply go to our search history page in a new tab
     console.log(tab)
-    var tx = db.transaction('tabgroups', 'readwrite');
-    var store = tx.objectStore('tabgroups');
-	store.openCursor().onsuccess = function(event) {
-	  // Get the old value that we want to update
-	  var data = event.target.result.value || {
-            ts: new Date().getTime(),
-            name: "Untitled Group",
-            tabs: []
-      }
 
-      data.tabs.unshift({
-        title: tab.title,
-        url:tab.url,
-        favicon:tab.favIconUrl,
-        pinned: tab.pinned
-      })
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        var db = event.target.result;
 
-	  // Put this updated object back into the database.
-	  var requestUpdate = store.put(data);
-	  requestUpdate.onsuccess = function(event) {
-	      chrome.tabs.remove(tab.id)
-	      // Success - the data is updated!
-	      chrome.tabs.create({
-	   	   url: "odinochka.html"
-	      });
-	  };
-	};
+        var tx = db.transaction('tabgroups', 'readwrite');
+        var store = tx.objectStore('tabgroups');
+        store.openCursor().onsuccess = function(event) {
+          // Get the old value that we want to update
+          var cursor = event.target.result;
+
+          var data = cursor ? cursor.value : {
+                ts: new Date().getTime(),
+                name: "Untitled Group",
+                tabs: []
+          }
+
+          data.tabs.unshift({
+            title: tab.title,
+            url:tab.url,
+            favicon:tab.favIconUrl,
+            pinned: tab.pinned
+          })
+
+          data.urls = data.tabs.map(a => a.url);
+
+          // Put this updated object back into the database.
+          var requestUpdate = cursor ? cursor.update(data) : store.put(data);
+          requestUpdate.onsuccess = function(event) {
+              chrome.tabs.remove(tab.id)
+              // Success - the data is updated!
+              chrome.tabs.create({
+               url: "odinochka.html"
+              });
+          };
+        };
+        //inside db
+    };
 
 });
 
@@ -64,7 +103,7 @@ chrome.contextMenus.onClicked.addListener(function(details, tab){
 
 var db;
 // Let us open our database
-var DBOpenRequest = window.indexedDB.open("odinochka", 4);
+var DBOpenRequest = window.indexedDB.open("odinochka", 5);
 
 // Two event handlers for opening the database.
 DBOpenRequest.onerror = function(event) {
@@ -102,7 +141,6 @@ DBOpenRequest.onupgradeneeded = function(event) {
   // Create an objectStore for this database
   var objectStore = db.createObjectStore("tabgroups", { keyPath: "ts" });
 
-  // define what data items the objectStore will contain
-    
-  objectStore.createIndex("href", ["tabs", "url"]);
+  // define what data items the objectStore will index
+  objectStore.createIndex("urls", "urls", {multiEntry: true});
 };
