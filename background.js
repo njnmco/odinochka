@@ -123,7 +123,7 @@ chrome.contextMenus.onClicked.addListener(function(details, tab){
        chrome.tabs.query({windowId: tab.windowId}, saveTabs)
    }
    if(details.menuItemId == "odinochka_save_all") {
-       tabs = chrome.tabs.query({},  saveTabs)
+       chrome.windows.getAll(w => chrome.tabs.query({windowId: w.id}, saveTabs))
    }
 
 });
