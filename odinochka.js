@@ -4,7 +4,6 @@ render()
 
 function tabclick(event) {
 
-    console.log(event)
     {
         var me = event.target;
         var ts = parseInt(event.target.parentNode.id);
@@ -12,6 +11,7 @@ function tabclick(event) {
 
 
         if(!(event.shiftKey || event.ctrlKey)){
+            // Removes target from DB object
             window.indexedDB.open("odinochka", 5).onsuccess = function(event){
                 var db = event.target.result;
 
@@ -21,25 +21,30 @@ function tabclick(event) {
                 store.get(ts).onsuccess = function(event) {
                     var data = event.target.result;
 
+                    if(data.urls.length == 1) {
+                        store.delete(ts).onsuccess = function(event){
+                            me = me.parentNode;
+                            me.parentNode.removeChild(me);
+                        }
 
+                        return null;
+                    }
 
                     var i = data.urls.indexOf(url);
 
                     data.tabs.splice(i, 1)
                     data.urls = data.tabs.map(a => a.url);
 
-                    store.put(data)
-
-
-                    me.parentNode.removeChild(me)
-                    console.log(event)
+                    store.put(data).onsuccess = function(event){
+                        me.parentNode.removeChild(me)
+                    }
                 }
             }
         }//shift/ctrl if
 
     }
 
-    return event.clientX > event.target.offsetLeft;
+    return event.clientX > event.target.offsetLeft; // if outside box (eg x'd) don't follow link
 
 }
 
@@ -52,11 +57,11 @@ function render() {
 
         var tx = db.transaction('tabgroups', 'readwrite');
         var store = tx.objectStore('tabgroups');
-        store.openCursor().onsuccess = function(event) {
+        store.openCursor(null, "prev").onsuccess = function(event) {
                 var cursor = event.target.result;
                 var ddiv = document.createElement("div");
                 if(!cursor){
-                    groupdiv.appendChild(ddiv); // forces floats to clear
+                    //groupdiv.appendChild(ddiv); // forces floats to clear
                     return;
                 }
 
@@ -69,9 +74,9 @@ function render() {
                 prettyTime.setTime(data.ts);
 
 
-                var header = document.createElement("header")
-                header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`
-
+                var header = document.createElement("header");
+                header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
+                header.className = "tab";
                 ddiv.appendChild(header);
 
                 for(var tab of data.tabs) {
@@ -88,8 +93,11 @@ function render() {
                     ddiv.appendChild(a);
                 }
 
-                groupdiv.appendChild(ddiv);
+
+                var footer = document.createElement("footer");
+                ddiv.appendChild(footer);
                 
+                groupdiv.appendChild(ddiv);
                 cursor.continue();
 
         };
