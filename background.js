@@ -74,7 +74,7 @@ function saveTabs(tabs, newWin=true) {
                 tabs: []
           }
 
-          for(var tab of tabs){
+          for(var tab of tabs.slice().reverse()){
               if(tab.url == "chrome://newtab/") continue;
               if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
               data.tabs.unshift({
