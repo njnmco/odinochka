@@ -73,9 +73,11 @@ function saveTabs(tabs, newWin=true) {
         return tab;
     }
 
-    if(newWin) {
+    if(newWin && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
     }
+
+    console.log(options)
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -105,17 +107,71 @@ function saveTabs(tabs, newWin=true) {
               })
           }
 
-          data.urls = data.tabs.map(a => a.url);
 
           // Put this updated object back into the database.
-          var requestUpdate = cursor ? cursor.update(data) : store.put(data);
-          requestUpdate.onsuccess = function(event) {
-              // Success - the data is updated!
-              chrome.tabs.create({
-               url: "odinochka.html"
-              });
-              tabs.map(t => chrome.tabs.remove(t.id))
-          };
+          var updateIt = function() {
+              data.urls = data.tabs.map(a => a.url);
+              var requestUpdate = cursor ? cursor.update(data) : store.put(data);
+              requestUpdate.onsuccess = function(event) {
+                  // Success - the data is updated!
+                  chrome.tabs.create({
+                   url: "odinochka.html"
+                  });
+                  tabs.map(t => chrome.tabs.remove(t.id))
+              };
+          }
+
+
+
+
+          if(options.dupe == "update") {
+              var recUpdate = function(i) {
+                  if(i == data.tabs.length) return updateIt();
+
+                  store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
+                      var tabCursor = event.target.result;
+                      if(tabCursor) {
+                          var dupe = tabCursor.value;
+                          var j = dupe.urls.indexOf(data.tabs[i].url);
+
+                          dupe.tabs.splice(j, 1);
+                          dupe.urls = dupe.tabs.map(a => a.url);
+
+                          if(dupe.urls.length > 0) {
+                              store.put(dupe);
+                          } else {
+                              store.delete(dupe.ts);
+                          }
+
+                          tabCursor.continue()
+                          return;
+                      }
+                      recUpdate(i + 1)
+                  }
+              }
+
+              recUpdate(0);
+          }
+          else if(options.dupe == "reject") {
+              var recUpdate = function(i) {
+                  if(i == -1) {
+                      if(data.tabs.length > 0)
+                          return updateIt();
+                      return;
+                  }
+                  store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
+                      var tabCursor = event.target.result;
+                      if(tabCursor) {
+                          data.tabs.splice(i, 1);
+                      }
+                      recUpdate(i - 1);
+                  }
+              }
+
+              recUpdate(data.tabs.length - 1);
+          } else if (options.dupe == "keep") {
+              updateIt()
+          }
         };
         //inside db
     };
@@ -123,6 +179,16 @@ function saveTabs(tabs, newWin=true) {
 
 
 }
+
+// options
+var options = {}
+chrome.storage.local.get({dupe: "keep", pinned: "skip"}, o => Object.assign(options, o))
+
+chrome.storage.onChanged.addListener(function(changes, areaName) {
+    if(areaName != "local") return;
+    for(i in changes) options[i] = changes[i].newValue;
+})
+
 
 // handle clicks to our extension icon
 chrome.browserAction.onClicked.addListener(tab => saveTabs([tab], false));
