@@ -17,4 +17,15 @@ Not Great Suspender compatible
   - I've req'd this feature at least a few times over last 3 years.
 
 ## TODO
-  * https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
+  - [x] Save Tabs
+    - [x] Browser action button context menu
+    - [x] Save tabs to indexeddb
+    - [x] except pinned tabs
+  - [x] UI page
+    - [x] Restore tab
+    - [x] Delete tab
+    - [x] favicons
+    - [x] Restore tab groups
+      - [x] Rename tab groups
+      - [x] Delete tab groups
+    - [x] Counter
