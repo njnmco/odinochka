@@ -112,6 +112,7 @@ function tabclick(event) {
         var url = event.target.href;
         var isX = event.clientX < event.target.offsetLeft; // if outside box (eg x'd) don't follow link
         var restore = document.forms["options"].elements["restore"].value;
+        var pinned = me.target == "_pinned";
 
 
         if(isX || !(event.shiftKey || event.ctrlKey || (restore  == "keep"))){
@@ -149,6 +150,10 @@ function tabclick(event) {
             }
         }//shift/ctrl if
 
+    if(pinned) {
+        chrome.tabs.create({url:url, pinned:true})
+        return false;
+    }
 
     return !isX; //only open if not X
 
@@ -239,7 +244,7 @@ function render() {
                     }
                     a.className = "tab";
                     a.onclick = tabclick;
-                    a.target = "_blank";
+                    a.target = tab.pinned ? "_pinned" :  "_blank";
 
                     ddiv.appendChild(a);
                 }
