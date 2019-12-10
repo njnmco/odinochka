@@ -67,6 +67,10 @@ function saveTabs(tabs, newWin=true) {
         return tab;
     }
 
+    if(newWin) {
+        tabs = tabs.filter(t => !t.pinned)
+    }
+
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         var db = event.target.result;

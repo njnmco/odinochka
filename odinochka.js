@@ -28,6 +28,7 @@ function groupclick(event) {
             store.delete(ts).onsuccess = function(event) {
                 me = me.parentNode;
                 me.parentNode.removeChild(me)
+                updateCount(store)
             }
       }
 
@@ -123,6 +124,7 @@ function tabclick(event) {
                         store.delete(ts).onsuccess = function(event){
                             me = me.parentNode;
                             me.parentNode.removeChild(me);
+                            updateCount(store);
                         }
 
                         return null;
@@ -135,6 +137,7 @@ function tabclick(event) {
 
                     store.put(data).onsuccess = function(event){
                         me.parentNode.removeChild(me)
+                        updateCount(store);
                     }
                 }
             }
@@ -146,6 +149,12 @@ function tabclick(event) {
 
 }
 
+function updateCount(store) {
+        store.index("urls").count().onsuccess=function(e){
+            document.getElementById("size").innerText = e.target.result + " tabs"
+        }
+}
+
 function render() {
     var groupdiv = document.getElementById("groups");
 
@@ -155,6 +164,9 @@ function render() {
 
         var tx = db.transaction('tabgroups', 'readwrite');
         var store = tx.objectStore('tabgroups');
+
+        updateCount(store);
+
         store.openCursor(null, "prev").onsuccess = function(event) {
                 var cursor = event.target.result;
                 var ddiv = document.createElement("div");
