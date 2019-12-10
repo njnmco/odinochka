@@ -63,6 +63,17 @@ chrome.runtime.onInstalled.addListener(function(){
  
 });
 
+function dedupTabs(data) {
+  // remove duplicates within group
+  var seen = new Set();
+  var toDrop = [];
+  for(var i = 0; i < data.tabs.length; i++){
+      if(seen.has(data.tabs[i].url)) toDrop = toDrop.concat(i)
+      seen.add(data.tabs[i].url)
+  }
+  for(var i of toDrop.reverse()) data.tabs.splice(i,1)
+}
+
 function saveTabs(tabs, newWin=true) {
 
     fixGreatSuspender = function(tab) {
@@ -125,6 +136,9 @@ function saveTabs(tabs, newWin=true) {
 
 
           if(options.dupe == "update") {
+
+              dedupTabs(data);
+
               var recUpdate = function(i) {
                   if(i == data.tabs.length) return updateIt();
 
@@ -132,6 +146,14 @@ function saveTabs(tabs, newWin=true) {
                       var tabCursor = event.target.result;
                       if(tabCursor) {
                           var dupe = tabCursor.value;
+
+                          if(dupe.ts == data.ts) {
+                              //will be handled by updateIt callback.
+                              tabCursor.continue()
+                              return;
+                          }
+
+
                           var j = dupe.urls.indexOf(data.tabs[i].url);
 
                           dupe.tabs.splice(j, 1);
@@ -153,6 +175,9 @@ function saveTabs(tabs, newWin=true) {
               recUpdate(0);
           }
           else if(options.dupe == "reject") {
+
+              dedupTabs(data);
+
               var recUpdate = function(i) {
                   if(i == -1) {
                       if(data.tabs.length > 0)
