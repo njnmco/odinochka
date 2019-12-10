@@ -2,45 +2,81 @@
 <html>
   <head>
     <title> odinochka options </title>
+    <style>
+      div, article, header, footer, input {
+          clear: both;
+
+      }
+
+      header {
+          font-weight: bold;
+
+      }
+
+    </style>
   </head>
   <body>
 <h1>odinochka options</h1>
 
 <div>
-Tab group:
+    <header>Restore tab group:</header>
+    <input type="radio" name='group' value='new'>
+        New Window
+    </input>
+    <input type="radio" name='group' value='newplus'>
+        New Window, except when alone
+    </input>
+    <input type="radio" name='group' value='current'>
+        Current Window
+    </input>
+</div>
 
-New Window
-New Window, except when alone
-Current Window
+<div>
+    <header>Pinned Tabs</header>
+    <input type="radio" name='pinned' value="dontsave">
+        Don't save
+    </input>
+    <input type="radio" name='pinned' value='save' >
+        save
+    </input>
+</div>
+
+<div>
+    <header>Show Odinochka</header>
+    <input type="radio" name="show" value="startup">
+        On Startup
+    </input>
+    <input type="radio" name="show" value="tab">
+        On New Tab
+    </input>
+    <input type="radio" name="show" value="noshow">
+        Do not open automatically
+    </input>
 
 </div>
 
 <div>
-Pinned Tabs
-Don't save
-save
-
-</div>
-
-<div>
-On Startup
-On New Tab
-Do not open automatically
-
-</div>
-
-<div>
-On Restore
-  * Open and remove
-  * Retain
+    <header>On Restore group</header>
+    <input type="radio" name='restore' value='remove'>
+        Open and remove
+    </input>
+    <input type="radio" name='restore' value='retain'>
+        Retain
+    </input>
 </div>
 
 
 <div>
-Duplicates?
-Duplicate
-Silently Reject
-Update
+    <header>Duplicates?</header>
+    <input type="radio" name="duplicates" value="dupe">
+        Duplicate
+    </input>
+    <input type="radio" name="duplicates" value="reject">
+        Silently Reject
+    </input>
+    <input type="radio" name="duplicates" value="update">
+        Update
+    </input>
 </div>
 
 <submit />
