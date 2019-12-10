@@ -1,5 +1,6 @@
 
 render()
+initOptions()
 
 
 function groupclick(event) {
@@ -155,7 +156,39 @@ function updateCount(store) {
         }
 }
 
+
+function initOptions() {
+    var DEFAULT_OPTIONS = {
+        dupe: "keep",
+        pinned: "skip"
+    }
+
+    chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
+        for(i in o) document.forms["options"].elements[i].forEach(
+            e => e.checked = e.value == o[i]
+        )
+    })
+
+    document.forms["options"].onchange = function (e) {
+        o = {};
+        o[e.target.name] = e.target.value;
+        chrome.storage.local.set(o);
+    }
+
+    chrome.storage.onChanged.addListener(function(changes, areaName) {
+        if(areaName != "local") return;
+        for(i in changes) document.forms["options"].elements[i].forEach(
+            e => e.checked = e.value == changes[i].newValue
+        )
+    })
+
+}
+
 function render() {
+
+
+    // Building tab list
+
     var groupdiv = document.getElementById("groups");
 
 

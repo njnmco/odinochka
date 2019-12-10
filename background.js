@@ -2,6 +2,17 @@
 chrome.runtime.onInstalled.addListener(function(){
 	// Context Menus on button
 	chrome.contextMenus.create({
+		  id: "odinochka_show",
+		  title: "show",
+		  contexts: ["browser_action"],
+	});
+	chrome.contextMenus.create({
+          id: "odinochka_sep",
+          type: "separator",
+		  contexts: ["browser_action"],
+	});
+
+	chrome.contextMenus.create({
 		  id: "odinochka_save_tab",
 		  title: "save tab",
 		  contexts: ["browser_action"],
@@ -19,11 +30,6 @@ chrome.runtime.onInstalled.addListener(function(){
 	chrome.contextMenus.create({
 		  id: "odinochka_save_all",
 		  title: "save all",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
-		  id: "odinochka_show",
-		  title: "show",
 		  contexts: ["browser_action"],
 	});
 

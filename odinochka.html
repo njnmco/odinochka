@@ -53,8 +53,21 @@
       </div>
 
     <footer>
-        <a href="options.html">Options</a>
-        Licensed under GPL-3. <a href="https://github.com/nfultz/odinochka">GitHub</a>
+        <form name=options>
+        <p>
+            Duplicates:
+            <input type=radio name=dupe value=keep>Keep</input>
+            <input type=radio name=dupe value=update>Update</input>
+            <input type=radio name=dupe value=reject>Reject</input>
+        </p>
+        <p>
+            Pinned Tabs:
+            <input type=radio name=pinned value=save>Save</input>
+            <input type=radio name=pinned value=skip>Skip</input>
+        </p>
+        </form>
+        <p>Licensed under GPL-3.</p>
+        <p><a href="https://github.com/nfultz/odinochka">GitHub</a> </p>
         <script src="odinochka.js"></script>
     </footer>
   </body>
