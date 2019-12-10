@@ -61,7 +61,7 @@ function saveTabs(tabs, newWin=true) {
 
     fixGreatSuspender = function(tab) {
         if(tab.url.startsWith("chrome-extension") &&
-           tab.url.indexof("/suspended.html#") > -1) {
+           tab.url.indexOf("/suspended.html#") > -1) {
                 tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
         }
         return tab;
