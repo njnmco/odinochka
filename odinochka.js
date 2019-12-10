@@ -37,6 +37,7 @@ function groupclick(event) {
             var data = event.target.result
 
             chrome.windows.create({url: data.urls})
+            chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
 
             // clean up
             mydelete();

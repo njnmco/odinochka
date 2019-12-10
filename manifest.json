@@ -8,6 +8,5 @@
       "persistent": false
     },
     "browser_action": { },
-    "options_page": "options.html",
     "manifest_version":2
 }
