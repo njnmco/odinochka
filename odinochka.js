@@ -37,12 +37,15 @@ function groupclick(event) {
 
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result
+            var restore = document.forms["options"].elements["restore"].value;
 
             chrome.windows.create({url: data.urls})
-            chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
 
             // clean up
-            mydelete();
+            if(restore != "keep") {
+                chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
+                mydelete();
+            }
 
         }
 
@@ -104,13 +107,15 @@ function groupblur(event) {
 
 function tabclick(event) {
 
-    {
         var me = event.target;
         var ts = parseInt(event.target.parentNode.id);
         var url = event.target.href;
+        var isX = event.clientX < event.target.offsetLeft; // if outside box (eg x'd) don't follow link
+        var restore = document.forms["options"].elements["restore"].value;
 
 
-        if(!(event.shiftKey || event.ctrlKey)){
+        if(isX || !(event.shiftKey || event.ctrlKey || (restore  == "keep"))){
+            console.log({isX:isX, event:event, restore:restore});
             // Removes target from DB object
             window.indexedDB.open("odinochka", 5).onsuccess = function(event){
                 var db = event.target.result;
@@ -144,9 +149,8 @@ function tabclick(event) {
             }
         }//shift/ctrl if
 
-    }
 
-    return event.clientX > event.target.offsetLeft; // if outside box (eg x'd) don't follow link
+    return !isX; //only open if not X
 
 }
 
@@ -160,6 +164,7 @@ function updateCount(store) {
 function initOptions() {
     var DEFAULT_OPTIONS = {
         dupe: "keep",
+        restore: "remove",
         pinned: "skip"
     }
 
