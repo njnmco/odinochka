@@ -150,7 +150,7 @@ function saveTabs(tabs, newWin=true, show=true) {
 
 
                             // Remove all tabs that match
-                            dupe.tabs.filter(t => !seen.has(t.url))
+                            dupe.tabs = dupe.tabs.filter(t => !seen.has(t.url))
 
                             if(dupe.tabs.length > 0) {
                                 dupe.urls = dupe.tabs.map(a => a.url);
