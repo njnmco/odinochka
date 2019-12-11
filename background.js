@@ -228,21 +228,22 @@ function showOdinochka() {
     chrome.tabs.query({
         url:"chrome-extension://*/odinochka.html"
       }, function(tabs){
-          if(tabs.length > 0){
-              for(t of tabs) {
-                  chrome.tabs.reload(t.id);
-              }
-              chrome.tabs.query({
-                    url:"chrome-extension://*/odinochka.html",
-                    windowId: chrome.windows.WINDOW_ID_CURRENT
-                  },
-                  (tabs) => {
-                    if(tabs.length) chrome.tabs.update(tabs[0].id, {active: true})
-                  })
-          }
-          else {
+          if(tabs.length == 0) {
               chrome.tabs.create({ url: "odinochka.html" });
+              return;
           }
+          for(t of tabs) {
+              chrome.tabs.reload(t.id);
+          }
+          chrome.tabs.query({
+                url:"chrome-extension://*/odinochka.html",
+                windowId: chrome.windows.WINDOW_ID_CURRENT
+              },
+              function(tabs) {
+                if(tabs.length) chrome.tabs.update(tabs[0].id, {active: true})
+                else chrome.tabs.create({ url: "odinochka.html" });
+              }
+          )
     })
 
 }
