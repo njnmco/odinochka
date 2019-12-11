@@ -31,6 +31,7 @@ Not Great Suspender compatible
         - [x] drag and drop
           - [x] within tab group
           - [x] between tab group
+          - [x] merge tab groups
     - [x] tab groups
       - [x] Restore
       - [x] Rename
