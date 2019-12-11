@@ -277,7 +277,7 @@ function render() {
                     a.className = "tab";
                     a.onclick = tabclick;
                     a.target = tab.pinned ? "_pinned" :  "_blank";
-
+                    addDragDrop(a)
                     ddiv.appendChild(a);
                 }
 
@@ -291,4 +291,31 @@ function render() {
         };
     };
 
+}
+
+
+function addDragDrop(a) {
+    a.draggable = true;
+    a.ondragstart = dragstart
+    a.ondragend = dragend
+    a.ondragover = dragover
+    a.ondrop = drop
+}
+
+function dragstart(event) {
+    event.target.id = "drag";
+}
+
+function dragover(event) {
+    event.preventDefault()
+}
+
+function dragend(event) {
+    event.target.id = null;
+}
+
+function drop(event) {
+    event.preventDefault();
+    var d = document.getElementById("drag");
+    event.target.parentNode.insertBefore(d, event.target.nextSibling);
 }
