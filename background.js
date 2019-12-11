@@ -79,7 +79,7 @@ function fixGreatSuspender(tab) {
 
 
 
-function saveTabs(tabs, newWin=true) {
+function saveTabs(tabs, newWin=true, show=true) {
 
     if(newWin && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
@@ -120,9 +120,9 @@ function saveTabs(tabs, newWin=true) {
                 var requestUpdate = cursor ? cursor.update(data) : store.put(data);
                 requestUpdate.onsuccess = function(event) {
                     // Success - the data is updated!
-                    chrome.tabs.create({
-                     url: "odinochka.html"
-                    });
+                    if(show) {
+                        chrome.tabs.create({ url: "odinochka.html" });
+                    }
                     tabs.map(t => chrome.tabs.remove(t.id))
                 };
             }
@@ -211,6 +211,18 @@ chrome.browserAction.onClicked.addListener(tab =>
    chrome.tabs.query({windowId: tab.windowId, highlighted: true}, t => saveTabs(t, false))
 );
 
+chrome.commands.onCommand.addListener(function(command) {
+    if (command == "shortcut-show") {
+       chrome.tabs.create({ url: "odinochka.html" });
+    }
+    if (command == "shortcut-save-win") {
+       chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, saveTabs)
+    }
+    if (command == "shortcut-save-tab") {
+       chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
+         tab => {console.log(tab); saveTabs(tab, false, false) });
+    }
+});
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(function(details, tab){
@@ -229,5 +241,4 @@ chrome.contextMenus.onClicked.addListener(function(details, tab){
    if(details.menuItemId == "odinochka_save_all") {
        chrome.windows.getAll(w => chrome.tabs.query({windowId: w.id}, saveTabs))
    }
-
 });

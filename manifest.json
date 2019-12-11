@@ -7,6 +7,28 @@
       "scripts": ["background.js"],
       "persistent": false
     },
+	"commands": {
+	  "shortcut-show": {
+		"suggested_key": {
+		  "default": "Alt+Shift+O"
+		},
+		"description": "Show Odinochka"
+	  },
+	  "shortcut-save-tab": {
+		"suggested_key": {
+		  "default": "Alt+T"
+		},
+		"description": "Save Tab"
+	  } ,
+	  "shortcut-save-win": {
+		"suggested_key": {
+		  "default": "Alt+O"
+		},
+		"description": "Save Window"
+	  }
+
+
+	},
     "browser_action": { },
     "manifest_version":2
 }

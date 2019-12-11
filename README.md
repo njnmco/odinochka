@@ -22,11 +22,13 @@ Not Great Suspender compatible
     - [x] Save tabs to indexeddb
     - [x] except pinned tabs
   - [x] UI page
-    - [x] list
-        - [x] Restore tab
-        - [x] Delete tab
+    - [x] list tabs
+        - [x] restore tab
+        - [x] delete tab
         - [x] favicons
-        - [ ] drag and drop
+        - [x] drag and drop
+          - [x] within tab group
+          - [x] between tab group
     - [x] tab groups
       - [x] Restore
       - [x] Rename
