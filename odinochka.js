@@ -311,11 +311,59 @@ function dragover(event) {
 }
 
 function dragend(event) {
-    event.target.id = null;
+    delete event.target.id
 }
 
 function drop(event) {
     event.preventDefault();
-    var d = document.getElementById("drag");
-    event.target.parentNode.insertBefore(d, event.target.nextSibling);
+
+    var src = document.getElementById("drag");
+    var tgt = event.target;
+    var srcId = parseInt(src.parentNode.id);
+    var tgtId = parseInt(tgt.parentNode.id);
+    var srcIndex = Arrays.from(src.parentNode.children).indexOf(src)
+    var tgtIndex = Arrays.from(tgt.parentNode.children).indexOf(tgt)
+
+    var moveNode = function() {
+        tgt.parentNode.insertBefore(d, tgt.nextSibling);
+    }
+
+
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        var db = event.target.result;
+
+        var tx = db.transaction('tabgroups', 'readwrite');
+        var store = tx.objectStore('tabgroups');
+
+        store.get(tgtId).onsuccess = function(event1) {
+            store.get(srcId).onsuccess = function(event2) {
+                var tdata = event1.target.result;
+                var sdata = event2.target.result;
+
+                tdata.tabs.splice(tgtIndex, 0, sdata.tabs[srcIndex]);
+                tdata.urls = tdata.tabs.map(t => t.url);
+
+                sdata.tabs.splice(srcIndex, 1);
+                sdata.urls = sdata.tabs.map(t => t.url);
+
+                store.put(tdata).onsuccess = function(event) {
+
+                    if(sdata.tabs.length == 0) {
+                        store.delete(sdata.ts).onsuccess = moveNode;
+                    }
+                    else {
+                        store.put(sdata).onsuccess = moveNode;
+                    }
+
+                }
+
+
+
+
+            }
+
+        }
+
+
+    };
 }
