@@ -243,6 +243,9 @@ function render() {
     // Building tab list
 
     var groupdiv = document.getElementById("groups");
+    while (groupdiv.firstChild) {
+          groupdiv.removeChild(groupdiv.firstChild);
+    }
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -275,7 +278,7 @@ function render() {
                 header.ondblclick = groupclick;
                 header.onblur = groupblur;
                 header.contentEditable = false;
-                addDragDrop(header, false, true); // headers can recieve but not send
+                addDragDrop(header);
                 ddiv.appendChild(header);
 
                 for(var tab of data.tabs) {
@@ -293,8 +296,8 @@ function render() {
                 }
 
 
-                var footer = document.createElement("footer");
-                ddiv.appendChild(footer);
+                //var footer = document.createElement("footer");
+                //ddiv.appendChild(footer);
                 
                 groupdiv.appendChild(ddiv);
                 cursor.continue();
@@ -306,16 +309,12 @@ function render() {
 
 // Drag and Drop
 
-function addDragDrop(a, source=true, target=true) {
-    if(source) {
-        a.draggable = true;
-        a.ondragstart = dragstart
-        a.ondragend = dragend
-    }
-    if(target) {
-        a.ondragover = dragover
-        a.ondrop = drop
-    }
+function addDragDrop(a) {
+    a.draggable = true;
+    a.ondragstart = dragstart
+    a.ondragend = dragend
+    a.ondragover = dragover
+    a.ondrop = drop
 }
 
 function dragstart(event) {
@@ -343,9 +342,14 @@ function drop(event) {
     var tgtId = parseInt(tgt.parentNode.id);
     var srcIndex = Array.from(src.parentNode.children).indexOf(src) - 1; // -1 to adjust for header tag
     var tgtIndex = Array.from(tgt.parentNode.children).indexOf(tgt) - 1;
+    var srcGroup = src.tagName  == "HEADER"
+    var tgtGroup = tgt.tagName  == "HEADER"
+
+    if(srcGroup && !tgtGroup) return; // appending group to link makes no sense.
 
     var moveNode = function() {
         tgt.parentNode.insertBefore(src, tgt.nextSibling);
+        reloadOthers();
     }
 
     //console.log({src:src, tgt:tgt, srcId:srcId, tgtId:tgtId, srcIndex:srcIndex, tgtIndex:tgtIndex})
@@ -373,11 +377,25 @@ function drop(event) {
             store.get(srcId).onsuccess = function(event2) {
                 var tdata = event1.target.result;
                 var sdata = event2.target.result;
+                var callback;
 
-                tdata.tabs.splice(tgtIndex, 0, sdata.tabs[srcIndex]);
+                if(srcGroup && tgtGroup) {
+                    tdata.tabs = tdata.tabs.concat(sdata.tabs);
+                    sdata.tabs = []
+                    callback = function() {
+                        console.log("redraw " + tdata.ts)
+                        while(src.nextSibling) {
+                            tgt.parentNode.appendChild(src.nextSibling);
+                        }
+                        reloadOthers();
+                    }
+                } else {
+                    tdata.tabs.splice(tgtIndex, 0, sdata.tabs[srcIndex]);
+                    sdata.tabs.splice(srcIndex, 1);
+                    callback = moveNode
+                }
+
                 tdata.urls = tdata.tabs.map(t => t.url);
-
-                sdata.tabs.splice(srcIndex, 1);
                 sdata.urls = sdata.tabs.map(t => t.url);
 
                 store.put(tdata).onsuccess = function(event) {
@@ -385,12 +403,12 @@ function drop(event) {
                     if(sdata.tabs.length == 0) {
                         store.delete(sdata.ts).onsuccess = function(event) {
                             var oldParent = src.parentNode;
-                            moveNode();
+                            callback();
                             oldParent.parentNode.removeChild(oldParent);
                         }
                     }
                     else {
-                        store.put(sdata).onsuccess = moveNode;
+                        store.put(sdata).onsuccess = callback;
                     }
 
                 }
