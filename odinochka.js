@@ -2,11 +2,28 @@
 render()
 initOptions()
 
+function newWindow(data) {
+  chrome.windows.create({url: data.urls}, function(w) {
+      var pinned = data.tabs.filter(t => t.pinned).map(t => t.url);
+      if(!pinned) return;
+      pinned = new Set(pinned);
+
+      w.tabs.filter(t => pinned.has(t.url)).forEach(
+        t => chrome.tabs.update(t.id, {pinned: true})
+      )
+  })
+}
+
+function newTabs(data) {
+    data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
+}
+
 
 function groupclick(event) {
   var me = event.target;
   var ts = parseInt(event.target.parentNode.id);
   var shiftclick = event.shiftKey
+
 
   if( event.clientX > event.target.offsetLeft && !shiftclick) {
       // if inside box, make editable
@@ -17,6 +34,8 @@ function groupclick(event) {
       }
       return;
   }
+
+
 
   // delete it
   window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -33,15 +52,31 @@ function groupclick(event) {
             }
       }
 
-      if(shiftclick) {
+      if(!shiftclick) {
+          mydelete();
+          return;
+      }
 
         store.get(ts).onsuccess = function(event) {
-            var data = event.target.result
-            var restore = document.forms["options"].elements["restore"].value;
+            var data = event.target.result;
 
-            chrome.windows.create({url: data.urls})
+            // smart selection
+            var group = document.forms["options"].elements["group"].value;
+            if(group == 'new') {
+                newWindow(data)
+            }
+            else if(group == 'current') {
+                newTabs(data)
+            }
+            else if(group == 'smart') {
+                chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT},
+                    w => w.length == 1 ? newTabs(data) : newWindow(data)
+                )
+            }
+
 
             // clean up
+            var restore = document.forms["options"].elements["restore"].value;
             if(restore != "keep") {
                 chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
                 mydelete();
@@ -49,9 +84,6 @@ function groupclick(event) {
 
         }
 
-      } else {
-          mydelete();
-      }
 
   }
   
@@ -170,6 +202,7 @@ function initOptions() {
     var DEFAULT_OPTIONS = {
         dupe: "keep",
         restore: "remove",
+        group: "smart",
         pinned: "skip"
     }
 
@@ -214,7 +247,6 @@ function render() {
                 var cursor = event.target.result;
                 var ddiv = document.createElement("div");
                 if(!cursor){
-                    //groupdiv.appendChild(ddiv); // forces floats to clear
                     return;
                 }
 
