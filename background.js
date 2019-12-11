@@ -120,10 +120,10 @@ function saveTabs(tabs, newWin=true, show=true) {
                 var requestUpdate = cursor ? cursor.update(data) : store.put(data);
                 requestUpdate.onsuccess = function(event) {
                     // Success - the data is updated!
-                    if(show) {
-                        chrome.tabs.create({ url: "odinochka.html" });
-                    }
                     tabs.map(t => chrome.tabs.remove(t.id))
+                    if(show) {
+                        showOdinochka();
+                    }
                 };
             }
 
@@ -213,21 +213,44 @@ chrome.browserAction.onClicked.addListener(tab =>
 
 chrome.commands.onCommand.addListener(function(command) {
     if (command == "shortcut-show") {
-       chrome.tabs.create({ url: "odinochka.html" });
+       showOdinochka();
     }
     if (command == "shortcut-save-win") {
        chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, saveTabs)
     }
     if (command == "shortcut-save-tab") {
        chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
-         tab => {console.log(tab); saveTabs(tab, false, false) });
+         tab => saveTabs(tab, false, false) );
     }
 });
+
+function showOdinochka() {
+    chrome.tabs.query({
+        url:"chrome-extension://*/odinochka.html"
+      }, function(tabs){
+          if(tabs.length > 0){
+              for(t of tabs) {
+                  chrome.tabs.reload(t.id);
+              }
+              chrome.tabs.query({
+                    url:"chrome-extension://*/odinochka.html",
+                    windowId: chrome.windows.WINDOW_ID_CURRENT
+                  },
+                  (tabs) => {
+                    if(tabs.length) chrome.tabs.update(tabs[0].id, {active: true})
+                  })
+          }
+          else {
+              chrome.tabs.create({ url: "odinochka.html" });
+          }
+    })
+
+}
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(function(details, tab){
    if(details.menuItemId == "odinochka_show") {
-       chrome.tabs.create({ url: "odinochka.html" });
+       showOdinochka();
    }
    if(details.menuItemId == "odinochka_save_tab") {
        saveTabs([tab], false);

@@ -18,7 +18,9 @@ Not Great Suspender compatible
 
 ## TODO
   - [x] Save Tabs
-    - [x] Browser action button context menu
+    - [x] Browser action button
+    - [x] context menu
+    - [x] Keyboard shortcuts
     - [x] Save tabs to indexeddb
     - [x] except pinned tabs
   - [x] UI page

@@ -69,8 +69,8 @@ function groupclick(event) {
                 newTabs(data)
             }
             else if(group == 'smart') {
-                chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT},
-                    w => w.length == 1 ? newTabs(data) : newWindow(data)
+                chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT, pinned: false},
+                    w => w.length <= 1 ? newTabs(data) : newWindow(data)
                 )
             }
 
