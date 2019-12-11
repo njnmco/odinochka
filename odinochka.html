@@ -3,15 +3,17 @@
   <head>
     <title>Odinochka</title>
     <style>
-      button {
-        height: 30px;
-        width: 30px;
-        outline: none;
-      }
+    button {
+      height: 30px;
+      width: 30px;
+      outline: none;
+    }
+
     header, footer, article, div {
       clear:both;
       margin: 3em;
     }
+
     a.tab {
       background-image: var(--bg-favicon);
       background-repeat: no-repeat;
@@ -26,6 +28,11 @@
       float: left;
       clear:both;
 
+    }
+
+    header.tab {
+        margin-bottom: .5em;
+        font-size: 110%;
     }
 
     .tab:hover::before {
