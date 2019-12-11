@@ -63,6 +63,8 @@ chrome.runtime.onInstalled.addListener(function(){
  
 });
 
+
+
 function dedupTabs(data) {
   // remove duplicates within group
   var seen = new Set();
@@ -74,15 +76,19 @@ function dedupTabs(data) {
   for(var i of toDrop.reverse()) data.tabs.splice(i,1)
 }
 
-function saveTabs(tabs, newWin=true) {
 
-    fixGreatSuspender = function(tab) {
-        if(tab.url.startsWith("chrome-extension") &&
-           tab.url.indexOf("/suspended.html#") > -1) {
-                tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
-        }
-        return tab;
+
+function fixGreatSuspender(tab) {
+    if(tab.url.startsWith("chrome-extension") &&
+       tab.url.indexOf("/suspended.html#") > -1) {
+            tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
     }
+    return tab;
+}
+
+
+
+function saveTabs(tabs, newWin=true) {
 
     if(newWin && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
@@ -97,111 +103,107 @@ function saveTabs(tabs, newWin=true) {
         var tx = db.transaction('tabgroups', 'readwrite');
         var store = tx.objectStore('tabgroups');
         store.openCursor(null, "prev").onsuccess = function(event) {
-          // Get the old value that we want to update
-          var cursor = newWin ? null : event.target.result;
+            // Get the old value that we want to update
+            var cursor = newWin ? null : event.target.result;
 
-          var data = cursor ? cursor.value : {
-                ts: new Date().getTime(),
-                name: "Untitled Group",
-                tabs: []
-          }
+            var data = cursor ? cursor.value : {
+                  ts: new Date().getTime(),
+                  name: "Untitled Group",
+                  tabs: []
+            }
 
-          for(var tab of tabs.slice().reverse()){
-              if(tab.url == "chrome://newtab/") continue;
-              if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
-              tab = fixGreatSuspender(tab);
-              data.tabs.unshift({
-                title: tab.title,
-                url:tab.url,
-                favicon:tab.favIconUrl,
-                pinned: tab.pinned
-              })
-          }
-
-
-          // Put this updated object back into the database.
-          var updateIt = function() {
-              data.urls = data.tabs.map(a => a.url);
-              var requestUpdate = cursor ? cursor.update(data) : store.put(data);
-              requestUpdate.onsuccess = function(event) {
-                  // Success - the data is updated!
-                  chrome.tabs.create({
-                   url: "odinochka.html"
-                  });
-                  tabs.map(t => chrome.tabs.remove(t.id))
-              };
-          }
+            for(var tab of tabs.slice().reverse()){
+                if(tab.url == "chrome://newtab/") continue;
+                if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
+                tab = fixGreatSuspender(tab);
+                data.tabs.unshift({
+                  title: tab.title,
+                  url:tab.url,
+                  favicon:tab.favIconUrl,
+                  pinned: tab.pinned
+                })
+            }
 
 
+            // Put this updated object back into the database.
+            var updateIt = function() {
+                data.urls = data.tabs.map(a => a.url);
+                var requestUpdate = cursor ? cursor.update(data) : store.put(data);
+                requestUpdate.onsuccess = function(event) {
+                    // Success - the data is updated!
+                    chrome.tabs.create({
+                     url: "odinochka.html"
+                    });
+                    tabs.map(t => chrome.tabs.remove(t.id))
+                };
+            }
 
 
-          if(options.dupe == "update") {
+            if (options.dupe == "keep") {
+                updateIt()
+            }
+            else if(options.dupe == "update") {
 
-              dedupTabs(data);
+                dedupTabs(data);
 
-              var recUpdate = function(i) {
-                  if(i == data.tabs.length) return updateIt();
+                var recUpdate = function(i) {
+                    if(i == data.tabs.length) return updateIt();
 
-                  store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
-                      var tabCursor = event.target.result;
-                      if(tabCursor) {
-                          var dupe = tabCursor.value;
+                    store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
+                        var tabCursor = event.target.result;
+                        if(tabCursor) {
+                            var dupe = tabCursor.value;
 
-                          if(dupe.ts == data.ts) {
-                              //will be handled by updateIt callback.
-                              tabCursor.continue()
-                              return;
-                          }
+                            if(dupe.ts == data.ts) {
+                                //will be handled by updateIt callback.
+                                tabCursor.continue()
+                                return;
+                            }
 
 
-                          var j = dupe.urls.indexOf(data.tabs[i].url);
+                            var j = dupe.urls.indexOf(data.tabs[i].url);
 
-                          dupe.tabs.splice(j, 1);
-                          dupe.urls = dupe.tabs.map(a => a.url);
+                            dupe.tabs.splice(j, 1);
+                            dupe.urls = dupe.tabs.map(a => a.url);
 
-                          if(dupe.urls.length > 0) {
-                              store.put(dupe);
-                          } else {
-                              store.delete(dupe.ts);
-                          }
+                            if(dupe.urls.length > 0) {
+                                store.put(dupe);
+                            } else {
+                                store.delete(dupe.ts);
+                            }
 
-                          tabCursor.continue()
-                          return;
-                      }
-                      recUpdate(i + 1)
-                  }
-              }
+                            tabCursor.continue()
+                            return;
+                        }
+                        recUpdate(i + 1)
+                    }
+                }
 
-              recUpdate(0);
-          }
-          else if(options.dupe == "reject") {
+                recUpdate(0);
+            }
+            else if(options.dupe == "reject") {
 
-              dedupTabs(data);
+                dedupTabs(data);
 
-              var recUpdate = function(i) {
-                  if(i == -1) {
-                      if(data.tabs.length > 0)
-                          return updateIt();
-                      return;
-                  }
-                  store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
-                      var tabCursor = event.target.result;
-                      if(tabCursor) {
-                          data.tabs.splice(i, 1);
-                      }
-                      recUpdate(i - 1);
-                  }
-              }
+                var recUpdate = function(i) {
+                    if(i == -1) {
+                        if(data.tabs.length > 0)
+                            return updateIt();
+                        return;
+                    }
+                    store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
+                        var tabCursor = event.target.result;
+                        if(tabCursor) {
+                            data.tabs.splice(i, 1);
+                        }
+                        recUpdate(i - 1);
+                    }
+                }
 
-              recUpdate(data.tabs.length - 1);
-          } else if (options.dupe == "keep") {
-              updateIt()
-          }
+                recUpdate(data.tabs.length - 1);
+            }
         };
-        //inside db
     };
-
-
 
 }
 
