@@ -121,9 +121,7 @@ function saveTabs(tabs, newWin=true, show=true) {
                 requestUpdate.onsuccess = function(event) {
                     // Success - the data is updated!
                     tabs.map(t => chrome.tabs.remove(t.id))
-                    if(show) {
-                        showOdinochka();
-                    }
+                    show ? showOdinochka() : reloadAll();
                 };
             }
 
@@ -224,17 +222,18 @@ chrome.commands.onCommand.addListener(function(command) {
     }
 });
 
+function reloadAll(callback=null) {
+    chrome.tabs.query(
+      { url:"chrome-extension://*/odinochka.html" },
+      tabs => {
+          tabs.forEach(t => chrome.tabs.reload(t.id))
+          if(callback) callback()
+      }
+    )
+}
+
 function showOdinochka() {
-    chrome.tabs.query({
-        url:"chrome-extension://*/odinochka.html"
-      }, function(tabs){
-          if(tabs.length == 0) {
-              chrome.tabs.create({ url: "odinochka.html" });
-              return;
-          }
-          for(t of tabs) {
-              chrome.tabs.reload(t.id);
-          }
+    reloadAll(function(){
           chrome.tabs.query({
                 url:"chrome-extension://*/odinochka.html",
                 windowId: chrome.windows.WINDOW_ID_CURRENT
@@ -245,7 +244,6 @@ function showOdinochka() {
               }
           )
     })
-
 }
 
 // Handle context menu clicks
