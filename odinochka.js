@@ -90,13 +90,6 @@ function groupclick(event) {
   
 }
 
-function reloadOthers() {
-    chrome.tabs.getCurrent((current) =>
-        chrome.tabs.query({url:"chrome-extension://*/odinochka.html"}, (tabs) =>
-            tabs.map(t => t.id).filter(t => t != current.id).map(t => chrome.tabs.reload(t))
-        )
-    )
-}
 
 function groupblur(event) {
   var me = event.target;
@@ -130,7 +123,6 @@ function groupblur(event) {
                         var prettyTime = new Date();
                         prettyTime.setTime(data.ts);
                         me.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
-                        reloadOthers();
                     }
             }
 
@@ -200,10 +192,9 @@ function tabclick(event) {
 
 }
 
-function updateCount(store, reload=true) {
+function updateCount(store) {
         store.index("urls").count().onsuccess=function(e){
             document.getElementById("size").innerText = e.target.result + " tabs"
-            if(reload) reloadOthers();
         }
 }
 
@@ -254,7 +245,7 @@ function render() {
         var tx = db.transaction('tabgroups', 'readwrite');
         var store = tx.objectStore('tabgroups');
 
-        updateCount(store, false);
+        updateCount(store);
 
         store.openCursor(null, "prev").onsuccess = function(event) {
                 var cursor = event.target.result;
@@ -349,7 +340,6 @@ function drop(event) {
 
     var moveNode = function() {
         tgt.parentNode.insertBefore(src, tgt.nextSibling);
-        reloadOthers();
     }
 
     //console.log({src:src, tgt:tgt, srcId:srcId, tgtId:tgtId, srcIndex:srcIndex, tgtIndex:tgtIndex})
@@ -383,11 +373,9 @@ function drop(event) {
                     tdata.tabs = tdata.tabs.concat(sdata.tabs);
                     sdata.tabs = []
                     callback = function() {
-                        console.log("redraw " + tdata.ts)
                         while(src.nextSibling) {
                             tgt.parentNode.appendChild(src.nextSibling);
                         }
-                        reloadOthers();
                     }
                 } else {
                     tdata.tabs.splice(tgtIndex, 0, sdata.tabs[srcIndex]);
@@ -404,7 +392,7 @@ function drop(event) {
                         store.delete(sdata.ts).onsuccess = function(event) {
                             var oldParent = src.parentNode;
                             callback();
-                            oldParent.parentNode.removeChild(oldParent);
+                            oldParent.remove();
                         }
                     }
                     else {

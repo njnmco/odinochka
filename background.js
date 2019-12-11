@@ -79,9 +79,9 @@ function fixGreatSuspender(tab) {
 
 
 
-function saveTabs(tabs, newWin=true, show=true) {
+function saveTabs(tabs, newGroup=true, show=true) {
 
-    if(newWin && options.pinned == "skip") {
+    if(newGroup && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
     }
 
@@ -93,7 +93,7 @@ function saveTabs(tabs, newWin=true, show=true) {
         var store = tx.objectStore('tabgroups');
         store.openCursor(null, "prev").onsuccess = function(event) {
             // Get the old value that we want to update
-            var cursor = newWin ? null : event.target.result;
+            var cursor = newGroup ? null : event.target.result;
 
             var data = cursor ? cursor.value : {
                   ts: new Date().getTime(),
@@ -121,7 +121,7 @@ function saveTabs(tabs, newWin=true, show=true) {
                 requestUpdate.onsuccess = function(event) {
                     // Success - the data is updated!
                     tabs.map(t => chrome.tabs.remove(t.id))
-                    show ? showOdinochka() : reloadAll();
+                    show ? showOdinochka() : reloadOdinochka();
                 };
             }
 
@@ -154,9 +154,9 @@ function saveTabs(tabs, newWin=true, show=true) {
 
                             if(dupe.tabs.length > 0) {
                                 dupe.urls = dupe.tabs.map(a => a.url);
-                                store.put(dupe);
+                                tabCursor.update(dupe);
                             } else {
-                                store.delete(dupe.ts);
+                                tabCursor.delete();
                             }
 
                             tabCursor.continue()
@@ -222,28 +222,21 @@ chrome.commands.onCommand.addListener(function(command) {
     }
 });
 
-function reloadAll(callback=null) {
+function showOdinochka() {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
       tabs => {
-          tabs.forEach(t => chrome.tabs.reload(t.id))
-          if(callback) callback()
+          chrome.tabs.remove(tabs.map(t => t.id))
+          chrome.tabs.create({ url: "odinochka.html" });
       }
     )
 }
 
-function showOdinochka() {
-    reloadAll(function(){
-          chrome.tabs.query({
-                url:"chrome-extension://*/odinochka.html",
-                windowId: chrome.windows.WINDOW_ID_CURRENT
-              },
-              function(tabs) {
-                if(tabs.length) chrome.tabs.update(tabs[0].id, {active: true})
-                else chrome.tabs.create({ url: "odinochka.html" });
-              }
-          )
-    })
+function reloadOdinochka() {
+    chrome.tabs.query(
+      { url:"chrome-extension://*/odinochka.html" },
+      tabs => tabs.map(t => chrome.reload(t.id))
+    )
 }
 
 // Handle context menu clicks
