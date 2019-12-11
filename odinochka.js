@@ -265,6 +265,7 @@ function render() {
                 header.ondblclick = groupclick;
                 header.onblur = groupblur;
                 header.contentEditable = false;
+                addDragDrop(header, false, true); // headers can recieve but not send
                 ddiv.appendChild(header);
 
                 for(var tab of data.tabs) {
@@ -293,13 +294,18 @@ function render() {
 
 }
 
+// Drag and Drop
 
-function addDragDrop(a) {
-    a.draggable = true;
-    a.ondragstart = dragstart
-    a.ondragend = dragend
-    a.ondragover = dragover
-    a.ondrop = drop
+function addDragDrop(a, source=true, target=true) {
+    if(source) {
+        a.draggable = true;
+        a.ondragstart = dragstart
+        a.ondragend = dragend
+    }
+    if(target) {
+        a.ondragover = dragover
+        a.ondrop = drop
+    }
 }
 
 function dragstart(event) {
@@ -311,7 +317,7 @@ function dragover(event) {
 }
 
 function dragend(event) {
-    delete event.target.id
+    event.target.id = ""
 }
 
 function drop(event) {
@@ -319,14 +325,20 @@ function drop(event) {
 
     var src = document.getElementById("drag");
     var tgt = event.target;
+
+    if(src == tgt) return;
+
+
     var srcId = parseInt(src.parentNode.id);
     var tgtId = parseInt(tgt.parentNode.id);
-    var srcIndex = Arrays.from(src.parentNode.children).indexOf(src)
-    var tgtIndex = Arrays.from(tgt.parentNode.children).indexOf(tgt)
+    var srcIndex = Array.from(src.parentNode.children).indexOf(src) - 1; // -1 to adjust for header tag
+    var tgtIndex = Array.from(tgt.parentNode.children).indexOf(tgt) - 1;
 
     var moveNode = function() {
-        tgt.parentNode.insertBefore(d, tgt.nextSibling);
+        tgt.parentNode.insertBefore(src, tgt.nextSibling);
     }
+
+    //console.log({src:src, tgt:tgt, srcId:srcId, tgtId:tgtId, srcIndex:srcIndex, tgtIndex:tgtIndex})
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -336,6 +348,18 @@ function drop(event) {
         var store = tx.objectStore('tabgroups');
 
         store.get(tgtId).onsuccess = function(event1) {
+            if (tgtId == srcId) {
+                var tdata = event1.target.result;
+                tdata.tabs.splice(tgtIndex + 1, 0, tdata.tabs[srcIndex]);
+                tdata.tabs.splice(srcIndex + (srcIndex > tgtIndex), 1);
+                tdata.urls = tdata.tabs.map(t => t.url);
+                //console.log(tdata.urls)
+
+
+                store.put(tdata).onsuccess = moveNode;
+                return;
+            }
+            // otherwise, cross group drag and drop
             store.get(srcId).onsuccess = function(event2) {
                 var tdata = event1.target.result;
                 var sdata = event2.target.result;
@@ -349,17 +373,16 @@ function drop(event) {
                 store.put(tdata).onsuccess = function(event) {
 
                     if(sdata.tabs.length == 0) {
-                        store.delete(sdata.ts).onsuccess = moveNode;
+                        store.delete(sdata.ts).onsuccess = function(event) {
+                            moveNode();
+                            src.parentNode.remove();
+                        }
                     }
                     else {
                         store.put(sdata).onsuccess = moveNode;
                     }
 
                 }
-
-
-
-
             }
 
         }
