@@ -102,7 +102,7 @@ function groupblur(event) {
 
   if(me.contentEditable == "true") {
       me.contentEditable = "false"
-      console.log([me.innerText, me.oldText])
+      //console.log([me.innerText, me.oldText])
 
       var newtxt = trimmer(me.innerText);
       var oldtxt = trimmer(me.oldText);
@@ -148,7 +148,7 @@ function tabclick(event) {
 
 
         if(isX || !(event.shiftKey || event.ctrlKey || (restore  == "keep"))){
-            console.log({isX:isX, event:event, restore:restore});
+            //console.log({isX:isX, event:event, restore:restore});
             // Removes target from DB object
             window.indexedDB.open("odinochka", 5).onsuccess = function(event){
                 var db = event.target.result;
@@ -374,8 +374,9 @@ function drop(event) {
 
                     if(sdata.tabs.length == 0) {
                         store.delete(sdata.ts).onsuccess = function(event) {
+                            var oldParent = src.parentNode;
                             moveNode();
-                            src.parentNode.remove();
+                            oldParent.parentNode.removeChild(oldParent);
                         }
                     }
                     else {
