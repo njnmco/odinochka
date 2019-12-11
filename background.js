@@ -36,16 +36,6 @@ chrome.runtime.onInstalled.addListener(function(){
     // Let us open our database
     var DBOpenRequest = window.indexedDB.open("odinochka", 5);
 
-    // Two event handlers for opening the database.
-    DBOpenRequest.onerror = function(event) {
-      console.log('Error loading database.');
-      console.log(event);
-    };
-
-    DBOpenRequest.onsuccess = function(event) {
-      console.log('<li>Database initialised.');
-    };
-
     DBOpenRequest.onupgradeneeded = function(event) {
       var db = event.target.result;
      
@@ -93,8 +83,6 @@ function saveTabs(tabs, newWin=true) {
     if(newWin && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
     }
-
-    console.log(options)
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -218,7 +206,9 @@ chrome.storage.onChanged.addListener(function(changes, areaName) {
 
 
 // handle clicks to our extension icon
-chrome.browserAction.onClicked.addListener(tab => saveTabs([tab], false));
+chrome.browserAction.onClicked.addListener(tab =>
+   chrome.tabs.query({windowId: tab.windowId, highlighted: true}, t => saveTabs(t, false))
+);
 
 
 // Handle context menu clicks

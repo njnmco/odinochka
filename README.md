@@ -26,6 +26,7 @@ Not Great Suspender compatible
         - [x] Restore tab
         - [x] Delete tab
         - [x] favicons
+        - [ ] drag and drop
     - [x] tab groups
       - [x] Restore
       - [x] Rename
