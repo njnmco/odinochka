@@ -1,6 +1,7 @@
 
 render()
 initOptions()
+closeOthers()
 
 function newWindow(data) {
   chrome.windows.create({url: data.urls}, function(w) {
@@ -226,6 +227,15 @@ function initOptions() {
         )
     })
 
+}
+
+function closeOthers() {
+    chrome.tabs.getCurrent(current =>
+        chrome.tabs.query(
+          { url:"chrome-extension://*/odinochka.html" },
+          tabs => chrome.tabs.remove(tabs.map(t => t.id).filter(t => t != current.id))
+        )
+    )
 }
 
 function render() {

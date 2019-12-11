@@ -120,8 +120,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
                 var requestUpdate = cursor ? cursor.update(data) : store.put(data);
                 requestUpdate.onsuccess = function(event) {
                     // Success - the data is updated!
-                    tabs.map(t => chrome.tabs.remove(t.id))
                     show ? showOdinochka() : reloadOdinochka();
+                    chrome.tabs.remove(tabs.map(t => t.id))
                 };
             }
 
@@ -223,19 +223,13 @@ chrome.commands.onCommand.addListener(function(command) {
 });
 
 function showOdinochka() {
-    chrome.tabs.query(
-      { url:"chrome-extension://*/odinochka.html" },
-      tabs => {
-          chrome.tabs.remove(tabs.map(t => t.id))
-          chrome.tabs.create({ url: "odinochka.html" });
-      }
-    )
+    chrome.tabs.create({ url: "odinochka.html" });
 }
 
 function reloadOdinochka() {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      tabs => tabs.map(t => chrome.reload(t.id))
+      t => t.length && chrome.tabs.reload(t[0].id) //there should be only one.
     )
 }
 
