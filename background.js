@@ -64,6 +64,7 @@ function dedupTabs(data) {
       seen.add(data.tabs[i].url)
   }
   for(var i of toDrop.reverse()) data.tabs.splice(i,1)
+  return seen;
 }
 
 
@@ -132,7 +133,7 @@ function saveTabs(tabs, newWin=true) {
             }
             else if(options.dupe == "update") {
 
-                dedupTabs(data);
+                var seen = dedupTabs(data);
 
                 var recUpdate = function(i) {
                     if(i == data.tabs.length) return updateIt();
@@ -149,12 +150,12 @@ function saveTabs(tabs, newWin=true) {
                             }
 
 
-                            var j = dupe.urls.indexOf(data.tabs[i].url);
 
-                            dupe.tabs.splice(j, 1);
-                            dupe.urls = dupe.tabs.map(a => a.url);
+                            // Remove all tabs that match
+                            dupe.tabs.filter(t => !seen.has(t.url))
 
-                            if(dupe.urls.length > 0) {
+                            if(dupe.tabs.length > 0) {
+                                dupe.urls = dupe.tabs.map(a => a.url);
                                 store.put(dupe);
                             } else {
                                 store.delete(dupe.ts);
