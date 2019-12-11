@@ -22,10 +22,17 @@ Not Great Suspender compatible
     - [x] Save tabs to indexeddb
     - [x] except pinned tabs
   - [x] UI page
-    - [x] Restore tab
-    - [x] Delete tab
-    - [x] favicons
-    - [x] Restore tab groups
-      - [x] Rename tab groups
-      - [x] Delete tab groups
+    - [x] list
+        - [x] Restore tab
+        - [x] Delete tab
+        - [x] favicons
+    - [x] tab groups
+      - [x] Restore
+      - [x] Rename
+      - [x] Delete
     - [x] Counter
+    - [x] Options
+      - [x] skip pinned tabs
+      - [x] Autoremove links
+      - [x] How to open Groups
+      - [x] Filter Duplicates
