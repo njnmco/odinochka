@@ -90,6 +90,14 @@ function groupclick(event) {
   
 }
 
+function reloadOthers() {
+    chrome.tabs.getCurrent((current) =>
+        chrome.tabs.query({url:"chrome-extension://*/odinochka.html"}, (tabs) =>
+            tabs.map(t => t.id).filter(t => t != current.id).map(t => chrome.tabs.reload(t))
+        )
+    )
+}
+
 function groupblur(event) {
   var me = event.target;
   var ts = parseInt(event.target.parentNode.id);
@@ -122,6 +130,7 @@ function groupblur(event) {
                         var prettyTime = new Date();
                         prettyTime.setTime(data.ts);
                         me.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
+                        reloadOthers();
                     }
             }
 
@@ -191,9 +200,10 @@ function tabclick(event) {
 
 }
 
-function updateCount(store) {
+function updateCount(store, reload=true) {
         store.index("urls").count().onsuccess=function(e){
             document.getElementById("size").innerText = e.target.result + " tabs"
+            if(reload) reloadOthers();
         }
 }
 
@@ -241,7 +251,7 @@ function render() {
         var tx = db.transaction('tabgroups', 'readwrite');
         var store = tx.objectStore('tabgroups');
 
-        updateCount(store);
+        updateCount(store, false);
 
         store.openCursor(null, "prev").onsuccess = function(event) {
                 var cursor = event.target.result;
