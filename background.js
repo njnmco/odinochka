@@ -85,7 +85,6 @@ function saveTabs(tabs, newGroup=true, show=true) {
         tabs = tabs.filter(t => !t.pinned)
     }
 
-
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         var db = event.target.result;
 
@@ -131,38 +130,28 @@ function saveTabs(tabs, newGroup=true, show=true) {
             }
             else if(options.dupe == "update") {
 
-                var seen = dedupTabs(data);
+                var uniq = dedupTabs(data);
 
                 var recUpdate = function(i) {
                     if(i == data.tabs.length) return updateIt();
 
                     store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
-                        if(tabCursor) {
-                            var dupe = tabCursor.value;
+                        if(!tabCursor) return recUpdate(i + 1);
 
-                            if(dupe.ts == data.ts) {
-                                //will be handled by updateIt callback.
-                                tabCursor.continue()
-                                return;
-                            }
+                        var dupe = tabCursor.value;
+
+                        //will be handled by updateIt callback.
+                        if(dupe.ts == data.ts) return tabCursor.continue();
 
 
+                        // Remove all tabs that match
+                        dupe.tabs = dupe.tabs.filter(t => !uniq.has(t.url))
+                        dupe.urls = dupe.tabs.map(a => a.url);
 
-                            // Remove all tabs that match
-                            dupe.tabs = dupe.tabs.filter(t => !seen.has(t.url))
+                        dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
 
-                            if(dupe.tabs.length > 0) {
-                                dupe.urls = dupe.tabs.map(a => a.url);
-                                tabCursor.update(dupe);
-                            } else {
-                                tabCursor.delete();
-                            }
-
-                            tabCursor.continue()
-                            return;
-                        }
-                        recUpdate(i + 1)
+                        tabCursor.continue();
                     }
                 }
 
@@ -174,9 +163,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                 var recUpdate = function(i) {
                     if(i == -1) {
-                        if(data.tabs.length > 0)
-                            return updateIt();
-                        return;
+                        return data.tabs.length && updateIt();
                     }
                     store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
@@ -214,11 +201,16 @@ chrome.commands.onCommand.addListener(function(command) {
        showOdinochka()
     }
     if (command == "shortcut-save-win") {
-       chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, saveTabs)
+       chrome.tabs.query(
+           {windowId: chrome.windows.WINDOW_ID_CURRENT},
+           saveTabs
+       );
     }
     if (command == "shortcut-save-tab") {
-       chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
-         tab => saveTabs(tab, false, false) );
+       chrome.tabs.query(
+         {windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
+         tab => saveTabs(tab, false, false)
+       );
     }
 });
 
@@ -242,12 +234,19 @@ chrome.contextMenus.onClicked.addListener(function(details, tab){
        saveTabs([tab], false);
    }
    if(details.menuItemId == "odinochka_save_selected") {
-       chrome.tabs.query({windowId: tab.windowId, highlighted: true}, saveTabs)
+       chrome.tabs.query(
+           {windowId: tab.windowId, highlighted: true},
+           saveTabs
+       )
    }
    if(details.menuItemId == "odinochka_save_win") {
        chrome.tabs.query({windowId: tab.windowId}, saveTabs)
    }
    if(details.menuItemId == "odinochka_save_all") {
-       chrome.windows.getAll(w => chrome.tabs.query({windowId: w.id}, saveTabs))
+       chrome.windows.getAll(
+           ws => ws.forEach(
+               w => chrome.tabs.query({windowId: w.id}, saveTabs)
+           )
+       )
    }
 });
