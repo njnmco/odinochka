@@ -146,6 +146,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                         //should never happen
                         if(dupe.ts == data.ts) {
+                            console.log({dupe:dupe, data:data, origUrls:origUrls, i:i})
                             return tabCursor.continue();
                         }
 
