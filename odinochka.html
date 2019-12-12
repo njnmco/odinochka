@@ -14,7 +14,7 @@
       margin: 3em;
     }
 
-    div::after {
+    div::after, form::after {
       content:"";
       clear:both;
       display: block;
@@ -49,48 +49,53 @@
         /*border: dashed 1px;*/
     }
 
+    fieldset {
+        float:left;
+        border-style: dashed;
+    }
+
     </style>
   </head>
   <body>
 
-      <header>
-          <h1>Odinochka</h1>
-          <h2 id=size></h2>
-      </header>
+    <header>
+        <h1>Odinochka</h1>
+        <h2 id=size></h2>
+    </header>
 
-      <div id=groups>
-            <!-- fake data
-            <a class="tab" href="https://mail.google.com/mail/ca/u/1/#inbox" style='--bg-favicon: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACMklEQVRYR+3W2auOURQG8N9JhowpMynlggtESaIQGXNBSXFBSeHu/AsKVyKlCCncKCfckaEMqVOSIXeGMoTMY2Zap/3W521/b9/RqXPzrcv33WvtZz/rWc/eLbo5Wrp5f00ATQYKBkZiUY0gf+NIJwS6Cv1q1l/Gg0byCwCDMQUDMA1/sLWRAmnNTPTGdPTFSdxuJL+sgVHY+B8Air22YGgTQFczEG0akTh+gRBovejyFizDZPRKO/7AVYTKc5EDEBO2IbP4DK5XibAdg3ANHxECXYr+uInTmaI5AH0wDvPShJxFHOQ53tUDELVjjo+WNhmGTXTcIYfxqPQ/B6AHVmB0qvemNqcKwDHcz5xyLcbjYcasygCidasTa1EvmPwnqgDsxKcMgNmYj+/YUcHAPQTYMKiD+JoTTRWAcMJwxHKEUy5PH8sgCwYuJGcdgl84hGedAVBlxZOwMhXbi1c1hQsAkX8nTc8EvMb+JL6GW7A9l4AZWJyqbMPPDIBbOIWYgM0YWG9yqlqwB28ztC1EXD4fsKuBKRiL9WlyTuBuo1NwLnlAeX1rujWv4GIDAGLJXMzBN+yL+S/yqhh4iTaE/RaxALNSod0ZZdez4tgnWAg2HicP6RB4+UEScxvWGT8PYA2e4D3GJDP5guMlE1qC4ckteyZhfsZ5PMW65IJxVUeECwYbbeUHSXHSAHAJ4XwTE/L4F+hvpP7Xsj812XZZMjEJ4XxBfy7am4/SJgNNBrqdgb/paZI3kaIx2QAAAABJRU5ErkJggg==")' id=2>Inbox - neal@njnm.co - NJNM consulting Mail</a>
-            -->
-
-      </div>
+    <div id=groups>
+          <!-- fake data
+          <a class="tab" href="https://mail.google.com/mail/ca/u/1/#inbox" style='--bg-favicon: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACMklEQVRYR+3W2auOURQG8N9JhowpMynlggtESaIQGXNBSXFBSeHu/AsKVyKlCCncKCfckaEMqVOSIXeGMoTMY2Zap/3W521/b9/RqXPzrcv33WvtZz/rWc/eLbo5Wrp5f00ATQYKBkZiUY0gf+NIJwS6Cv1q1l/Gg0byCwCDMQUDMA1/sLWRAmnNTPTGdPTFSdxuJL+sgVHY+B8Air22YGgTQFczEG0akTh+gRBovejyFizDZPRKO/7AVYTKc5EDEBO2IbP4DK5XibAdg3ANHxECXYr+uInTmaI5AH0wDvPShJxFHOQ53tUDELVjjo+WNhmGTXTcIYfxqPQ/B6AHVmB0qvemNqcKwDHcz5xyLcbjYcasygCidasTa1EvmPwnqgDsxKcMgNmYj+/YUcHAPQTYMKiD+JoTTRWAcMJwxHKEUy5PH8sgCwYuJGcdgl84hGedAVBlxZOwMhXbi1c1hQsAkX8nTc8EvMb+JL6GW7A9l4AZWJyqbMPPDIBbOIWYgM0YWG9yqlqwB28ztC1EXD4fsKuBKRiL9WlyTuBuo1NwLnlAeX1rujWv4GIDAGLJXMzBN+yL+S/yqhh4iTaE/RaxALNSod0ZZdez4tgnWAg2HicP6RB4+UEScxvWGT8PYA2e4D3GJDP5guMlE1qC4ckteyZhfsZ5PMW65IJxVUeECwYbbeUHSXHSAHAJ4XwTE/L4F+hvpP7Xsj812XZZMjEJ4XxBfy7am4/SJgNNBrqdgb/paZI3kaIx2QAAAABJRU5ErkJggg==")' id=2>Inbox - neal@njnm.co - NJNM consulting Mail</a>
+          -->
+    </div>
 
     <footer>
         <form name=options><fieldset>
                 <legend>Options</legend>
 
-        <p>
-            Duplicates:
-            <input type=radio name=dupe value=keep>Keep</input>
-            <input type=radio name=dupe value=update>Update</input>
-            <input type=radio name=dupe value=reject>Reject</input>
-        </p>
-        <p>
-            Pinned Tabs:
-            <input type=radio name=pinned value=save>Save</input>
-            <input type=radio name=pinned value=skip>Skip</input>
-        </p>
-        <p>
-            On restore:
-            <input type=radio name=restore value=remove>Remove from list</input>
-            <input type=radio name=restore value=keep>Keep</input>
-        </p>
-        <p>
-            Restore groups to:
-            <input type=radio name=group value=new>Always new window</input>
-            <input type=radio name=group value=smart>Smart</input>
-            <input type=radio name=group value=current>Always current window</input>
-        </p>
+        <fieldset>
+            <legend>Duplicates</legend>
+            <input type=radio name=dupe value=keep><label>Keep</label><br/>
+            <input type=radio name=dupe value=update><label>Update</label><br/>
+            <input type=radio name=dupe value=reject><label>Reject</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>Pinned Tabs</legend>
+            <input type=radio name=pinned value=save><label>Save</label><br/>
+            <input type=radio name=pinned value=skip><label>Skip</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>On restore</legend>
+            <input type=radio name=restore value=remove><label>Remove from list</label><br/>
+            <input type=radio name=restore value=keep><label>Keep</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>Restore groups to</legend>
+            <input type=radio name=group value=new><label>Always new window</label><br/>
+            <input type=radio name=group value=smart><label>Smart</label><br/>
+            <input type=radio name=group value=current><label>Always current window</label><br/>
+        </fieldset>
+
         </fieldset></form>
         <p>
         Copyright njnm 2019.
