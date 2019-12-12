@@ -63,7 +63,7 @@ function dedupTabs(data) {
       if(seen.has(data.tabs[i].url)) toDrop = toDrop.concat(i)
       seen.add(data.tabs[i].url)
   }
-  for(var i of toDrop.reverse()) data.tabs.splice(i,1)
+  var dup = toDrop.reverse().map( i => data.tabs.splice(i,1)[0].url);
   return seen;
 }
 
@@ -100,6 +100,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
                   tabs: []
             }
 
+            var origUrls = new Set(data.urls);
+
             for(var tab of tabs.slice().reverse()){
                 if(tab.url == "chrome://newtab/") continue;
                 if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
@@ -126,7 +128,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 
             if (options.dupe == "keep") {
-                updateIt()
+                updateIt();
             }
             else if(options.dupe == "update") {
 
@@ -134,6 +136,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                 var recUpdate = function(i) {
                     if(i == data.tabs.length) return updateIt();
+                    if(origUrls.has(data.tabs[i].url)) return recUpdate(i+1);
 
                     store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
@@ -141,8 +144,10 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                         var dupe = tabCursor.value;
 
-                        //will be handled by updateIt callback.
-                        if(dupe.ts == data.ts) return tabCursor.continue();
+                        //should never happen
+                        if(dupe.ts == data.ts) {
+                            return tabCursor.continue();
+                        }
 
 
                         // Remove all tabs that match
@@ -165,6 +170,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
                     if(i == -1) {
                         return data.tabs.length && updateIt();
                     }
+                    if(origUrls.has(data.tabs[i].url)) return recUpdate(i - 1);
+
                     store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
                         if(tabCursor) {
