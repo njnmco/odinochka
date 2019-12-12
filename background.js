@@ -211,7 +211,7 @@ chrome.browserAction.onClicked.addListener(tab =>
 
 chrome.commands.onCommand.addListener(function(command) {
     if (command == "shortcut-show") {
-       showOdinochka();
+       showOdinochka()
     }
     if (command == "shortcut-save-win") {
        chrome.tabs.query({windowId: chrome.windows.WINDOW_ID_CURRENT}, saveTabs)
