@@ -78,7 +78,6 @@ function fixGreatSuspender(tab) {
 }
 
 
-
 function saveTabs(tabs, newGroup=true, show=true) {
 
     if(newGroup && options.pinned == "skip") {
@@ -115,15 +114,16 @@ function saveTabs(tabs, newGroup=true, show=true) {
             }
 
 
+            var closeTabs = function(event) {
+                show ? showOdinochka() : reloadOdinochka();
+                chrome.tabs.remove(tabs.map(t => t.id))
+            };
+
             // Put this updated object back into the database.
             var updateIt = function() {
                 data.urls = data.tabs.map(a => a.url);
-                var requestUpdate = cursor ? cursor.update(data) : store.put(data);
-                requestUpdate.onsuccess = function(event) {
-                    // Success - the data is updated!
-                    show ? showOdinochka() : reloadOdinochka();
-                    chrome.tabs.remove(tabs.map(t => t.id))
-                };
+                var req = cursor ? cursor.update(data) : store.put(data);
+                req.onsuccess = closeTabs;
             }
 
 
@@ -155,9 +155,9 @@ function saveTabs(tabs, newGroup=true, show=true) {
                         dupe.tabs = dupe.tabs.filter(t => !uniq.has(t.url))
                         dupe.urls = dupe.tabs.map(a => a.url);
 
-                        dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
+                        var req = dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
 
-                        tabCursor.continue();
+                        req.onsuccess = () => tabCursor.continue();
                     }
                 }
 
@@ -169,8 +169,10 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                 var recUpdate = function(i) {
                     if(i == -1) {
-                        return data.tabs.length && updateIt();
+                        // don't create empty group
+                        return !newGroup || data.length > 0 ? updateIt() : closeTabs();
                     }
+
                     if(origUrls.has(data.tabs[i].url)) return recUpdate(i - 1);
 
                     store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
