@@ -5,11 +5,7 @@ closeOthers()
 
 function newWindow(data) {
   chrome.windows.create({url: data.urls}, function(w) {
-      var pinned = data.tabs.filter(t => t.pinned).map(t => t.url);
-      if(!pinned) return;
-      pinned = new Set(pinned);
-
-      w.tabs.filter(t => pinned.has(t.url)).forEach(
+      w.tabs.filter((t,i) => data.tabs[i].pinned).forEach(
         t => chrome.tabs.update(t.id, {pinned: true})
       )
   })
