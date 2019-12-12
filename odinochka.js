@@ -21,96 +21,127 @@ function newTabs(data) {
 
 
 function groupclick(event) {
-  var me = event.target;
-  var ts = parseInt(event.target.parentNode.id);
-  var shiftclick = event.shiftKey
-
-
-  if( event.clientX > event.target.offsetLeft && !shiftclick) {
-      // if inside box, make editable
-      if(me.contentEditable == "false"){
-            me.oldText = me.innerText;
-            me.contentEditable = "true";
-            me.focus();
-      }
-      return;
-  }
-
-
-
-  // delete it
-  window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-      var db = event.target.result;
-
-      var tx = db.transaction('tabgroups', 'readwrite');
-      var store = tx.objectStore('tabgroups');
-
-      var mydelete = function() {
-            store.delete(ts).onsuccess = function(event) {
-                me = me.parentNode;
-                me.parentNode.removeChild(me)
-                updateCount(store)
-            }
-      }
-
-      if(!shiftclick) {
-          mydelete();
-          return;
-      }
-
+    var me = event.target;
+    var ts = parseInt(event.target.parentNode.id);
+    var shiftclick = event.shiftKey
+  
+  
+    if( event.clientX > event.target.offsetLeft && !shiftclick) {
+        // if inside box, make editable
+        if(me.contentEditable == "false"){
+              me.oldText = me.innerText;
+              me.contentEditable = "true";
+              me.focus();
+        }
+        return;
+    }
+  
+  
+  
+    // delete it
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        var db = event.target.result;
+  
+        var tx = db.transaction('tabgroups', 'readwrite');
+        var store = tx.objectStore('tabgroups');
+  
+  
+        if(!shiftclick) { // if not shift, then was x
+            removeAndUpdateCount(store.delete(ts), me.parentNode)
+            return;
+        }
+  
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result;
-
+  
             // smart selection
             var group = document.forms["options"].elements["group"].value;
             if(group == 'new') {
-                newWindow(data)
+                newWindow(data);
             }
             else if(group == 'current') {
-                newTabs(data)
+                newTabs(data);
             }
             else if(group == 'smart') {
                 chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT, pinned: false},
                     w => w.length <= 1 ? newTabs(data) : newWindow(data)
                 )
             }
-
-
+  
+  
             // clean up
             var restore = document.forms["options"].elements["restore"].value;
             if(restore != "keep") {
                 chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
-                mydelete();
+                removeAndUpdateCount(store.delete(ts), me.parentNode);
             }
-
+  
         }
-
-
-  }
   
   
+    }
+    
+    
 }
 
 
 function groupblur(event) {
-  var me = event.target;
-  var ts = parseInt(event.target.parentNode.id);
+    var me = event.target;
+    var ts = parseInt(event.target.parentNode.id);
+  
+    trimmer = function(s) {
+        var i = s.indexOf("@");
+        if(i != -1) s = s.substr(0, i);
+        return s.trim()
+    }
 
-  trimmer = function(s){
-      var i = s.indexOf("@");
-      if(i != -1) s = s.substr(0, i);
-      return s.trim()
-  }
+    if(me.contentEditable != "true") {
+        return;
+    }
 
-  if(me.contentEditable == "true") {
-      me.contentEditable = "false"
-      //console.log([me.innerText, me.oldText])
+    me.contentEditable = "false"
 
-      var newtxt = trimmer(me.innerText);
-      var oldtxt = trimmer(me.oldText);
+    var newtxt = trimmer(me.innerText);
+    var oldtxt = trimmer(me.oldText);
 
-      if(newtxt != oldtxt) {
+    if(newtxt == oldtxt) return;
+
+    
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        var db = event.target.result;
+
+        var tx = db.transaction('tabgroups', 'readwrite');
+        var store = tx.objectStore('tabgroups');
+
+        store.get(ts).onsuccess = function(event) {
+            var data = event.target.result;
+            data.name = newtxt;
+            store.put(data).onsuccess = (e => tabGroupLabel(me, data));
+        }
+
+    }
       
+}
+
+function removeAndUpdateCount(request, me) {
+    request.onsuccess = function(event) {
+        me.remove()
+        updateCount(request.source)
+    }
+}
+
+function tabclick(event) {
+
+    var me = event.target;
+    var ts = parseInt(me.parentNode.id);
+    var url = me.href;
+    var isX = event.clientX < event.target.offsetLeft; // if outside box (eg x'd) don't follow link
+    var restore = document.forms["options"].elements["restore"].value;
+    var pinned = me.target == "_pinned";
+
+
+    if(isX || !(event.shiftKey || event.ctrlKey || (restore  == "keep"))){
+        // Removes target from DB object
         window.indexedDB.open("odinochka", 5).onsuccess = function(event){
             var db = event.target.result;
 
@@ -118,85 +149,33 @@ function groupblur(event) {
             var store = tx.objectStore('tabgroups');
 
             store.get(ts).onsuccess = function(event) {
-                    var data = event.target.result;
-                    data.name = newtxt;
-                    store.put(data).onsuccess = function(event) {
-                        var prettyTime = new Date();
-                        prettyTime.setTime(data.ts);
-                        me.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
-                    }
-            }
+                var data = event.target.result;
 
-        }
-      
-      
-      
-      
-      
-      }
-
-  }
-
-}
-
-function tabclick(event) {
-
-        var me = event.target;
-        var ts = parseInt(event.target.parentNode.id);
-        var url = event.target.href;
-        var isX = event.clientX < event.target.offsetLeft; // if outside box (eg x'd) don't follow link
-        var restore = document.forms["options"].elements["restore"].value;
-        var pinned = me.target == "_pinned";
-
-
-        if(isX || !(event.shiftKey || event.ctrlKey || (restore  == "keep"))){
-            //console.log({isX:isX, event:event, restore:restore});
-            // Removes target from DB object
-            window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-                var db = event.target.result;
-
-                var tx = db.transaction('tabgroups', 'readwrite');
-                var store = tx.objectStore('tabgroups');
-
-                store.get(ts).onsuccess = function(event) {
-                    var data = event.target.result;
-
-                    if(data.urls.length == 1) {
-                        store.delete(ts).onsuccess = function(event){
-                            me = me.parentNode;
-                            me.parentNode.removeChild(me);
-                            updateCount(store);
-                        }
-
-                        return null;
-                    }
-
-                    var i = data.urls.indexOf(url);
-
-                    data.tabs.splice(i, 1)
+                if(data.urls.length == 1) {
+                    removeAndUpdateCount(store.delete(ts), me.parentNode)
+                }
+                else {
+                    data.tabs.splice(data.urls.indexOf(url), 1);
                     data.urls = data.tabs.map(a => a.url);
 
-                    store.put(data).onsuccess = function(event){
-                        me.parentNode.removeChild(me)
-                        updateCount(store);
-                    }
+                    removeAndUpdateCount(store.put(data), me);
                 }
             }
-        }//shift/ctrl if
+        }
+    }//shift/ctrl if
 
     if(pinned) {
-        chrome.tabs.create({url:url, pinned:true})
+        chrome.tabs.create({url:url, pinned:true});
         return false;
     }
 
     return !isX; //only open if not X
-
 }
 
 function updateCount(store) {
-        store.index("urls").count().onsuccess=function(e){
-            document.getElementById("size").innerText = e.target.result + " tabs"
-        }
+    store.index("urls").count().onsuccess = function(e) {
+        document.getElementById("size").innerText = e.target.result + " tabs";
+    }
 }
 
 
@@ -209,7 +188,7 @@ function initOptions() {
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
-        for(i in o) document.forms["options"].elements[i].forEach(
+        for(var i in o) document.forms["options"].elements[i].forEach(
             e => e.checked = e.value == o[i]
         )
     })
@@ -222,7 +201,7 @@ function initOptions() {
 
     chrome.storage.onChanged.addListener(function(changes, areaName) {
         if(areaName != "local") return;
-        for(i in changes) document.forms["options"].elements[i].forEach(
+        for(var i in changes) document.forms["options"].elements[i].forEach(
             e => e.checked = e.value == changes[i].newValue
         )
     })
@@ -238,6 +217,12 @@ function closeOthers() {
     )
 }
 
+function tabGroupLabel(header, data) {
+    var prettyTime = new Date();
+    prettyTime.setTime(data.ts);
+    header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
+}
+
 function render() {
 
 
@@ -245,7 +230,7 @@ function render() {
 
     var groupdiv = document.getElementById("groups");
     while (groupdiv.firstChild) {
-          groupdiv.removeChild(groupdiv.firstChild);
+        groupdiv.removeChild(groupdiv.firstChild);
     }
 
 
@@ -258,50 +243,43 @@ function render() {
         updateCount(store);
 
         store.openCursor(null, "prev").onsuccess = function(event) {
-                var cursor = event.target.result;
-                var ddiv = document.createElement("div");
-                if(!cursor){
-                    return;
+            var cursor = event.target.result;
+            if(!cursor){
+                return;
+            }
+
+            var data = cursor.value;
+
+
+            var ddiv = document.createElement("div");
+            ddiv.id = data.ts;
+
+
+            var header = document.createElement("header");
+            tabGroupLabel(header, data);
+            header.className = "tab";
+            header.ondblclick = groupclick;
+            header.onblur = groupblur;
+            header.contentEditable = false;
+            addDragDrop(header);
+            ddiv.appendChild(header);
+
+            for(var tab of data.tabs) {
+                var a = document.createElement("a");
+                a.innerText = tab.title;
+                a.href = tab.url;
+                if(tab.favicon){
+                    a.style = `--bg-favicon: url("${tab.favicon}")`;
                 }
+                a.className = "tab";
+                a.onclick = tabclick;
+                a.target = tab.pinned ? "_pinned" :  "_blank";
+                addDragDrop(a);
+                ddiv.appendChild(a);
+            }
 
-                var data = cursor.value;
-
-
-                ddiv.id = data.ts;
-
-                var prettyTime = new Date();
-                prettyTime.setTime(data.ts);
-
-
-                var header = document.createElement("header");
-                header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
-                header.className = "tab";
-                header.ondblclick = groupclick;
-                header.onblur = groupblur;
-                header.contentEditable = false;
-                addDragDrop(header);
-                ddiv.appendChild(header);
-
-                for(var tab of data.tabs) {
-                    var a = document.createElement("a");
-                    a.innerText = tab.title;
-                    a.href = tab.url;
-                    if(tab.favicon){
-                        a.style = `--bg-favicon: url("${tab.favicon}")`;
-                    }
-                    a.className = "tab";
-                    a.onclick = tabclick;
-                    a.target = tab.pinned ? "_pinned" :  "_blank";
-                    addDragDrop(a)
-                    ddiv.appendChild(a);
-                }
-
-
-                //var footer = document.createElement("footer");
-                //ddiv.appendChild(footer);
-                
-                groupdiv.appendChild(ddiv);
-                cursor.continue();
+            groupdiv.appendChild(ddiv);
+            cursor.continue();
 
         };
     };
