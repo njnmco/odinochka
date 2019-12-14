@@ -101,7 +101,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
             var origUrls = new Set(data.urls);
 
-            for(var tab of tabs.slice().reverse()){
+            for(let tab of tabs.slice().reverse()){
                 if(tab.url == "chrome://newtab/") continue;
                 if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
                 tab = fixGreatSuspender(tab);
@@ -115,8 +115,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 
             var closeTabs = function(event) {
-                show ? showOdinochka() : reloadOdinochka();
-                chrome.tabs.remove(tabs.map(t => t.id))
+                let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
+                show ? showOdinochka(cb) : reloadOdinochka(cb);
             };
 
             // Put this updated object back into the database.
@@ -202,61 +202,52 @@ chrome.storage.onChanged.addListener(function(changes, areaName) {
 
 
 // handle clicks to our extension icon
-chrome.browserAction.onClicked.addListener(tab =>
-   chrome.tabs.query({windowId: tab.windowId, highlighted: true}, t => saveTabs(t, false))
-);
+chrome.browserAction.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
 
-chrome.commands.onCommand.addListener(function(command) {
-    if (command == "shortcut-show") {
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((details, tab) => command_handler(details.menuItemId, true));
+
+chrome.commands.onCommand.addListener(command_handler);
+
+function command_handler(command, showOnSingleTab=false){
+    if (command == "odinochka_show") {
        showOdinochka()
     }
-    if (command == "shortcut-save-win") {
+    if (command == "odinochka_save_tab") {
+       chrome.tabs.query(
+         {windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
+         tab => saveTabs(tab, false, showOnSingleTab)
+       );
+    }
+    if(command == "odinochka_save_selected") {
+        chrome.tabs.query(
+            {windowId: tab.windowId, highlighted: true},
+            saveTabs
+        )
+    }
+    if (command == "odinochka_save_win") {
        chrome.tabs.query(
            {windowId: chrome.windows.WINDOW_ID_CURRENT},
            saveTabs
        );
     }
-    if (command == "shortcut-save-tab") {
-       chrome.tabs.query(
-         {windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
-         tab => saveTabs(tab, false, false)
-       );
+    if(details.menuItemId == "odinochka_save_all") {
+        chrome.windows.getAll(
+            ws => ws.forEach(
+                w => chrome.tabs.query({windowId: w.id}, saveTabs)
+            )
+        )
     }
-});
-
-function showOdinochka() {
-    chrome.tabs.create({ url: "odinochka.html" });
 }
 
-function reloadOdinochka() {
+function showOdinochka(callback = null) {
+    chrome.tabs.create({ url: "odinochka.html" }, callback);
+}
+
+function reloadOdinochka(callback) {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      t => t.length && chrome.tabs.reload(t[0].id) //there should be only one.
+      t => t.length ? chrome.tabs.reload(t[0].id, {}, callback) : callback() //there should be only one.
     )
 }
 
-// Handle context menu clicks
-chrome.contextMenus.onClicked.addListener(function(details, tab){
-   if(details.menuItemId == "odinochka_show") {
-       showOdinochka();
-   }
-   if(details.menuItemId == "odinochka_save_tab") {
-       saveTabs([tab], false);
-   }
-   if(details.menuItemId == "odinochka_save_selected") {
-       chrome.tabs.query(
-           {windowId: tab.windowId, highlighted: true},
-           saveTabs
-       )
-   }
-   if(details.menuItemId == "odinochka_save_win") {
-       chrome.tabs.query({windowId: tab.windowId}, saveTabs)
-   }
-   if(details.menuItemId == "odinochka_save_all") {
-       chrome.windows.getAll(
-           ws => ws.forEach(
-               w => chrome.tabs.query({windowId: w.id}, saveTabs)
-           )
-       )
-   }
-});

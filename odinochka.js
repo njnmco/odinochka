@@ -131,7 +131,7 @@ function tabclick(event) {
     var me = event.target;
     var ts = parseInt(me.parentNode.id);
     var url = me.href;
-    var isX = event.clientX < event.target.offsetLeft; // if outside box (eg x'd) don't follow link
+    var isX = event.clientX < me.offsetLeft; // if outside box (eg x'd) don't follow link
     var restore = document.forms["options"].elements["restore"].value;
     var pinned = me.target == "_pinned";
 
@@ -194,13 +194,6 @@ function initOptions() {
         o[e.target.name] = e.target.value;
         chrome.storage.local.set(o);
     }
-
-    chrome.storage.onChanged.addListener(function(changes, areaName) {
-        if(areaName != "local") return;
-        for(var i in changes) document.forms["options"].elements[i].forEach(
-            e => e.checked = e.value == changes[i].newValue
-        )
-    })
 
 }
 

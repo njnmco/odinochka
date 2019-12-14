@@ -42,3 +42,11 @@ Not Great Suspender compatible
       - [x] Autoremove links
       - [x] How to open Groups
       - [x] Filter Duplicates
+
+## Etymology
+
+Russian for singleton, but also:
+
+  - Loner
+  - Alaskan trading posts
+  - solitary confinement
