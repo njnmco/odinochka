@@ -176,7 +176,7 @@ function updateCount(store) {
 
 
 function initOptions() {
-    var DEFAULT_OPTIONS = {
+    let DEFAULT_OPTIONS = {
         dupe: "keep",
         restore: "remove",
         group: "smart",
@@ -184,13 +184,13 @@ function initOptions() {
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
-        for(var i in o) document.forms["options"].elements[i].forEach(
+        for(let i in o) document.forms["options"].elements[i].forEach(
             e => e.checked = e.value == o[i]
         )
     })
 
     document.forms["options"].onchange = function (e) {
-        o = {};
+        let o = {};
         o[e.target.name] = e.target.value;
         chrome.storage.local.set(o);
     }
@@ -207,7 +207,7 @@ function closeOthers() {
 }
 
 function tabGroupLabel(header, data) {
-    var prettyTime = new Date();
+    let prettyTime = new Date();
     prettyTime.setTime(data.ts);
     header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
 }
@@ -300,22 +300,22 @@ function dragend(event) {
 function drop(event) {
     event.preventDefault();
 
-    var src = document.getElementById("drag");
-    var tgt = event.target;
+    let src = document.getElementById("drag");
+    let tgt = event.target;
 
     if(src == tgt) return;
 
 
-    var srcId = parseInt(src.parentNode.id);
-    var tgtId = parseInt(tgt.parentNode.id);
-    var srcIndex = Array.from(src.parentNode.children).indexOf(src) - 1; // -1 to adjust for header tag
-    var tgtIndex = Array.from(tgt.parentNode.children).indexOf(tgt) - 1;
-    var srcGroup = src.tagName  == "HEADER"
-    var tgtGroup = tgt.tagName  == "HEADER"
+    let srcId = parseInt(src.parentNode.id);
+    let tgtId = parseInt(tgt.parentNode.id);
+    let srcIndex = Array.from(src.parentNode.children).indexOf(src) - 1; // -1 to adjust for header tag
+    let tgtIndex = Array.from(tgt.parentNode.children).indexOf(tgt) - 1;
+    let srcGroup = src.tagName  == "HEADER";
+    let tgtGroup = tgt.tagName  == "HEADER";
 
     if(srcGroup && !tgtGroup) return; // appending group to link makes no sense.
 
-    var moveNode = function() {
+    let moveNode = function() {
         tgt.parentNode.insertBefore(src, tgt.nextSibling);
     }
 
@@ -323,14 +323,14 @@ function drop(event) {
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        var db = event.target.result;
+        let db = event.target.result;
 
-        var tx = db.transaction('tabgroups', 'readwrite');
-        var store = tx.objectStore('tabgroups');
+        let tx = db.transaction('tabgroups', 'readwrite');
+        let store = tx.objectStore('tabgroups');
 
         store.get(tgtId).onsuccess = function(event1) {
             if (tgtId == srcId) {
-                var tdata = event1.target.result;
+                let tdata = event1.target.result;
                 tdata.tabs.splice(tgtIndex + 1, 0, tdata.tabs[srcIndex]);
                 tdata.tabs.splice(srcIndex + (srcIndex > tgtIndex), 1);
                 tdata.urls = tdata.tabs.map(t => t.url);
@@ -342,9 +342,9 @@ function drop(event) {
             }
             // otherwise, cross group drag and drop
             store.get(srcId).onsuccess = function(event2) {
-                var tdata = event1.target.result;
-                var sdata = event2.target.result;
-                var callback;
+                let tdata = event1.target.result;
+                let sdata = event2.target.result;
+                let callback;
 
                 if(srcGroup && tgtGroup) {
                     tdata.tabs = tdata.tabs.concat(sdata.tabs);
@@ -363,19 +363,20 @@ function drop(event) {
                 tdata.urls = tdata.tabs.map(t => t.url);
                 sdata.urls = sdata.tabs.map(t => t.url);
 
-                store.put(tdata).onsuccess = function(event) {
-
-                    if(sdata.tabs.length == 0) {
+                let req = store.put(tdata)
+                if(sdata.tabs.length > 0){
+                    req.onsuccess = function(event) {
+                        store.put(sdata).onsuccess = callback;
+                    }
+                }
+                else {
+                    req.onsuccess = function(event) {
                         store.delete(sdata.ts).onsuccess = function(event) {
-                            var oldParent = src.parentNode;
+                            let oldParent = src.parentNode;
                             callback();
                             oldParent.remove();
                         }
                     }
-                    else {
-                        store.put(sdata).onsuccess = callback;
-                    }
-
                 }
             }
 
