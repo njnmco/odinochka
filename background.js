@@ -114,13 +114,13 @@ function saveTabs(tabs, newGroup=true, show=true) {
             }
 
 
-            var closeTabs = function(event) {
+            let closeTabs = function(event) {
                 let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
                 show ? showOdinochka(cb) : reloadOdinochka(cb);
             };
 
             // Put this updated object back into the database.
-            var updateIt = function() {
+            let updateIt = function() {
                 data.urls = data.tabs.map(a => a.url);
                 var req = cursor ? cursor.update(data) : store.put(data);
                 req.onsuccess = closeTabs;
@@ -128,15 +128,15 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 
             if (options.dupe == "keep") {
-                updateIt();
+                return updateIt();
             }
             else if(options.dupe == "update") {
 
-                var uniq = dedupTabs(data);
+                let uniq = dedupTabs(data);
 
-                var recUpdate = function(i) {
+                let recUpdate = function(i) {
+                    while (i < data.tabs.length && origUrls.has(data.tabs[i].url)) i = i + 1;
                     if(i == data.tabs.length) return updateIt();
-                    if(origUrls.has(data.tabs[i].url)) return recUpdate(i+1);
 
                     store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
@@ -161,19 +161,18 @@ function saveTabs(tabs, newGroup=true, show=true) {
                     }
                 }
 
-                recUpdate(0);
+                return recUpdate(0);
             }
             else if(options.dupe == "reject") {
 
                 dedupTabs(data);
 
                 var recUpdate = function(i) {
+                    while (i >= 0 && origUrls.has(data.tabs[i].url)) i = i - 1;
                     if(i == -1) {
                         // don't create empty group
                         return !newGroup || data.length > 0 ? updateIt() : closeTabs();
                     }
-
-                    if(origUrls.has(data.tabs[i].url)) return recUpdate(i - 1);
 
                     store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
                         var tabCursor = event.target.result;
@@ -184,7 +183,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
                     }
                 }
 
-                recUpdate(data.tabs.length - 1);
+                return recUpdate(data.tabs.length - 1);
             }
         };
     };
