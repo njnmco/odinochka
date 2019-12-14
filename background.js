@@ -220,7 +220,7 @@ function command_handler(command, showOnSingleTab=false){
     }
     if (command == "odinochka_save_selected") {
         chrome.tabs.query(
-            {windowId: tab.windowId, highlighted: true},
+            {windowId: chrome.windows.WINDOW_ID_CURRENT, highlighted: true},
             saveTabs
         )
     }
