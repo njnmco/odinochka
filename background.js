@@ -57,13 +57,13 @@ chrome.runtime.onInstalled.addListener(function(){
 
 function dedupTabs(data) {
   // remove duplicates within group
-  var seen = new Set();
-  var toDrop = [];
-  for(var i = 0; i < data.tabs.length; i++){
+  let seen = new Set();
+  let toDrop = [];
+  for(let i = 0; i < data.tabs.length; i++){
       if(seen.has(data.tabs[i].url)) toDrop = toDrop.concat(i)
       seen.add(data.tabs[i].url)
   }
-  var dup = toDrop.reverse().map( i => data.tabs.splice(i,1)[0].url);
+  let dup = toDrop.reverse().map( i => data.tabs.splice(i,1)[0].url);
   return seen;
 }
 
@@ -85,21 +85,21 @@ function saveTabs(tabs, newGroup=true, show=true) {
     }
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        var db = event.target.result;
+        let db = event.target.result;
 
-        var tx = db.transaction('tabgroups', 'readwrite');
-        var store = tx.objectStore('tabgroups');
+        let tx = db.transaction('tabgroups', 'readwrite');
+        let store = tx.objectStore('tabgroups');
         store.openCursor(null, "prev").onsuccess = function(event) {
             // Get the old value that we want to update
-            var cursor = newGroup ? null : event.target.result;
+            let cursor = newGroup ? null : event.target.result;
 
-            var data = cursor ? cursor.value : {
+            let data = cursor ? cursor.value : {
                   ts: new Date().getTime(),
                   name: "Untitled Group",
                   tabs: []
             }
 
-            var origUrls = new Set(data.urls);
+            let origUrls = new Set(data.urls);
 
             for(let tab of tabs.slice().reverse()){
                 if(tab.url == "chrome://newtab/") continue;
@@ -139,10 +139,10 @@ function saveTabs(tabs, newGroup=true, show=true) {
                     if(i == data.tabs.length) return updateIt();
 
                     store.index("urls").openCursor(data.tabs[i].url).onsuccess = function(event){
-                        var tabCursor = event.target.result;
+                        let tabCursor = event.target.result;
                         if(!tabCursor) return recUpdate(i + 1);
 
-                        var dupe = tabCursor.value;
+                        let dupe = tabCursor.value;
 
                         //should never happen
                         if(dupe.ts == data.ts) {
@@ -155,7 +155,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
                         dupe.tabs = dupe.tabs.filter(t => !uniq.has(t.url))
                         dupe.urls = dupe.tabs.map(a => a.url);
 
-                        var req = dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
+                        let req = dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
 
                         req.onsuccess = () => tabCursor.continue();
                     }
@@ -167,7 +167,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                 dedupTabs(data);
 
-                var recUpdate = function(i) {
+                let recUpdate = function(i) {
                     while (i >= 0 && origUrls.has(data.tabs[i].url)) i = i - 1;
                     if(i == -1) {
                         // don't create empty group
@@ -175,7 +175,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
                     }
 
                     store.index("urls").getKey(data.tabs[i].url).onsuccess = function(event){
-                        var tabCursor = event.target.result;
+                        let tabCursor = event.target.result;
                         if(tabCursor) {
                             data.tabs.splice(i, 1);
                         }
@@ -196,7 +196,7 @@ chrome.storage.local.get({dupe: "keep", pinned: "skip"}, o => Object.assign(opti
 
 chrome.storage.onChanged.addListener(function(changes, areaName) {
     if(areaName != "local") return;
-    for(i in changes) options[i] = changes[i].newValue;
+    for(let i in changes) options[i] = changes[i].newValue;
 })
 
 
@@ -218,7 +218,7 @@ function command_handler(command, showOnSingleTab=false){
          tab => saveTabs(tab, false, showOnSingleTab)
        );
     }
-    if(command == "odinochka_save_selected") {
+    if (command == "odinochka_save_selected") {
         chrome.tabs.query(
             {windowId: tab.windowId, highlighted: true},
             saveTabs
@@ -230,7 +230,7 @@ function command_handler(command, showOnSingleTab=false){
            saveTabs
        );
     }
-    if(details.menuItemId == "odinochka_save_all") {
+    if (command == "odinochka_save_all") {
         chrome.windows.getAll(
             ws => ws.forEach(
                 w => chrome.tabs.query({windowId: w.id}, saveTabs)
