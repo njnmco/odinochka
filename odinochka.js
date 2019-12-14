@@ -297,26 +297,28 @@ function dragend(event) {
     event.target.id = ""
 }
 
+function ddextract(node) {
+    return {
+        node: node,
+        parentNode: node.parentNode,
+        id: parseInt(node.parentNode.id),
+        index: Array.from(node.parentNode.children).indexOf(node) - 1, // -1 to adjust for header tag
+        group: node.tagName == "HEADER"
+    }
+}
+
 function drop(event) {
     event.preventDefault();
 
-    let src = document.getElementById("drag");
-    let tgt = event.target;
+    if(event.target.id == "drag") return; // dropped on itself
 
-    if(src == tgt) return;
+    let src = ddextract(document.getElementById("drag"));
+    let tgt = ddextract(event.target);
 
-
-    let srcId = parseInt(src.parentNode.id);
-    let tgtId = parseInt(tgt.parentNode.id);
-    let srcIndex = Array.from(src.parentNode.children).indexOf(src) - 1; // -1 to adjust for header tag
-    let tgtIndex = Array.from(tgt.parentNode.children).indexOf(tgt) - 1;
-    let srcGroup = src.tagName  == "HEADER";
-    let tgtGroup = tgt.tagName  == "HEADER";
-
-    if(srcGroup && !tgtGroup) return; // appending group to link makes no sense.
+    if(src.group && !tgt.group) return; // appending group to link makes no sense.
 
     let moveNode = function() {
-        tgt.parentNode.insertBefore(src, tgt.nextSibling);
+        tgt.parentNode.insertBefore(src.node, tgt.node.nextSibling);
     }
 
     //console.log({src:src, tgt:tgt, srcId:srcId, tgtId:tgtId, srcIndex:srcIndex, tgtIndex:tgtIndex})
@@ -328,35 +330,32 @@ function drop(event) {
         let tx = db.transaction('tabgroups', 'readwrite');
         let store = tx.objectStore('tabgroups');
 
-        store.get(tgtId).onsuccess = function(event1) {
-            if (tgtId == srcId) {
-                let tdata = event1.target.result;
-                tdata.tabs.splice(tgtIndex + 1, 0, tdata.tabs[srcIndex]);
-                tdata.tabs.splice(srcIndex + (srcIndex > tgtIndex), 1);
+        store.get(tgt.id).onsuccess = function(event1) {
+            let tdata = event1.target.result;
+            if (tgt.id == src.id) {
+                tdata.tabs.splice(tgt.index + 1, 0, tdata.tabs[src.index]);
+                tdata.tabs.splice(src.index + (src.index > tgt.index), 1);
                 tdata.urls = tdata.tabs.map(t => t.url);
-                //console.log(tdata.urls)
-
 
                 store.put(tdata).onsuccess = moveNode;
                 return;
             }
             // otherwise, cross group drag and drop
-            store.get(srcId).onsuccess = function(event2) {
-                let tdata = event1.target.result;
+            store.get(src.id).onsuccess = function(event2) {
                 let sdata = event2.target.result;
                 let callback;
 
-                if(srcGroup && tgtGroup) {
+                if(src.group && tgt.group) {
                     tdata.tabs = tdata.tabs.concat(sdata.tabs);
                     sdata.tabs = []
                     callback = function() {
-                        while(src.nextSibling) {
-                            tgt.parentNode.appendChild(src.nextSibling);
+                        while(src.node.nextSibling) {
+                            tgt.parentNode.appendChild(src.node.nextSibling);
                         }
                     }
                 } else {
-                    tdata.tabs.splice(tgtIndex, 0, sdata.tabs[srcIndex]);
-                    sdata.tabs.splice(srcIndex, 1);
+                    tdata.tabs.splice(tgt.index, 0, sdata.tabs[src.index]);
+                    sdata.tabs.splice(src.index, 1);
                     callback = moveNode
                 }
 
