@@ -241,6 +241,7 @@ function renderTab(tab, a = null) {
 function renderGroup(data, ddiv=null) {
     ddiv = ddiv || document.createElement("div");
     ddiv.id = data.ts;
+    ddiv.innerHTML = '';
 
     ddiv.appendChild(renderHeader(data));
 
@@ -254,6 +255,7 @@ function render() {
 
     // Building tab list
     let groupdiv = document.getElementById("groups");
+    groupdiv.innerHTML = '';
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
@@ -273,6 +275,33 @@ function render() {
     };
 
 }
+
+function update(data) {
+    let groupdiv = document.getElementById("groups");
+    let child = groupdiv.children.length ? groupdiv.children[0] : null;
+
+    if(data.ts == groupdiv.children[0].id) {
+        renderGroup(data, child)
+    }
+    else {
+        groupdiv.insertBefore(renderGroup(data), child);
+    }
+
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        let db = event.target.result;
+        let tx = db.transaction('tabgroups', 'readonly');
+        let store = tx.objectStore('tabgroups');
+
+        updateCount(store);
+    };
+}
+
+chrome.runtime.onMessage.addListener(
+      function(request, sender, sendResponse) {
+          if(request.tabs) update(request);
+          sendResponse();
+          return true;
+      })
 
 // Drag and Drop
 

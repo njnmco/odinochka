@@ -118,7 +118,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
             let closeTabs = function(event) {
                 let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
-                show ? showOdinochka(cb) : reloadOdinochka(cb);
+                show ? showOdinochka(cb, data) : reloadOdinochka(cb, data);
             };
 
             if(newGroup && data.tabs.length == 0) return closeTabs();
@@ -243,10 +243,10 @@ function command_handler(command, showOnSingleTab=false){
     }
 }
 
-function showOdinochka(callback = null) {
+function showOdinochka(callback = null, data={}) {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      t => t.length ? chrome.tabs.reload(t[0].id, {},
+      t => t.length ? chrome.tabs.sendMessage(t[0].id, data,
                          () => chrome.tabs.move(t[0].id,
                                                 {windowId:chrome.windows.WINDOW_ID_CURRENT, index:-1},
                             () => chrome.tabs.update(t[0].id, {active:true},  callback)
@@ -256,10 +256,10 @@ function showOdinochka(callback = null) {
     
 }
 
-function reloadOdinochka(callback) {
+function reloadOdinochka(callback, data={}) {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      t => t.length ? chrome.tabs.reload(t[0].id, {}, callback) : callback() //there should be only one.
+      t => t.length ? chrome.tabs.sendMessage(t[0].id, data, callback) : callback() //there should be only one.
     )
 }
 
