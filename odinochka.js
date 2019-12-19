@@ -51,6 +51,9 @@ function groupclick(event) {
   
             // smart selection
             var group = document.forms["options"].elements["group"].value;
+            let restore = document.forms["options"].elements["restore"].value;
+            let locked = data.name.indexOf("lock") > -1;
+
             if(group == 'new') {
                 newWindow(data);
             }
@@ -65,10 +68,7 @@ function groupclick(event) {
   
   
             // clean up
-            let restore = document.forms["options"].elements["restore"].value;
-            let locked = data.name.indexOf("lock") > -1;
             if(!locked && restore != "keep") {
-                chrome.tabs.getCurrent(t => chrome.tabs.remove(t.id));
                 removeAndUpdateCount(store.delete(ts), me.parentNode);
             }
   
