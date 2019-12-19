@@ -30,5 +30,11 @@
 
 	},
     "browser_action": { },
+    "icons": {
+        "16": "images/odinochka16.png",
+        "32": "images/odinochka32.png",
+        "48": "images/odinochka48.png",
+        "128": "images/odinochka128.png"
+    },
     "manifest_version":2
 }
