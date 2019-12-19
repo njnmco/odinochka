@@ -84,6 +84,9 @@ function saveTabs(tabs, newGroup=true, show=true) {
         tabs = tabs.filter(t => !t.pinned)
     }
 
+    let o_pattern = /chrome-extension:\/\/[a-z]*\/odinochka.html/;
+    tabs = tabs.filter(t => !o_pattern.test(t.url));
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
 
@@ -103,7 +106,6 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
             for(let tab of tabs.slice().reverse()){
                 if(tab.url == "chrome://newtab/") continue;
-                if(/chrome-extension:\/\/[a-z]*\/odinochka.html/.test(tab.url)) continue;
                 tab = fixGreatSuspender(tab);
                 data.tabs.unshift({
                   title: tab.title,
@@ -118,6 +120,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
                 let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
                 show ? showOdinochka(cb) : reloadOdinochka(cb);
             };
+
+            if(newGroup && data.tabs.length == 0) return closeTabs();
 
             // Put this updated object back into the database.
             let updateIt = function() {
@@ -240,7 +244,16 @@ function command_handler(command, showOnSingleTab=false){
 }
 
 function showOdinochka(callback = null) {
-    chrome.tabs.create({ url: "odinochka.html" }, callback);
+    chrome.tabs.query(
+      { url:"chrome-extension://*/odinochka.html" },
+      t => t.length ? chrome.tabs.reload(t[0].id, {},
+                         () => chrome.tabs.move(t[0].id,
+                                                {windowId:chrome.windows.WINDOW_ID_CURRENT, index:-1},
+                            () => chrome.tabs.update(t[0].id, {active:true},  callback)
+                         ))
+                    : chrome.tabs.create({ url: "odinochka.html" }, callback)
+    )
+    
 }
 
 function reloadOdinochka(callback) {
