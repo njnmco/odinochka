@@ -15,6 +15,17 @@ function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
 }
 
+function cssfilter(x) {
+    let node = document.getElementById("cssfilterstyle");
+    node.innerHTML = "";
+    if(x.target.value != "") {
+        node.innerHTML = `a.tab {display:none} a.tab[href*="${x.target.value}"] {display:block} `;
+
+    }
+    
+
+}
+
 
 function groupclick(event) {
     let me = event.target;
@@ -197,6 +208,9 @@ function initOptions() {
         o[e.target.name] = e.target.value;
         chrome.storage.local.set(o);
     }
+
+
+    document.getElementsByName("filter")[0].oninput = cssfilter;
 
 }
 
