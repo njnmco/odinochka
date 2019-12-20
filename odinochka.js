@@ -43,6 +43,9 @@ function groupclick(event) {
         return;
     }
   
+    if(!shiftclick) { // if not shift, then was x
+        if(!confirm("Delete this group?")) return;
+    }
   
   
     // delete it
