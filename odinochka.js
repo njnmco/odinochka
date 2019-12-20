@@ -20,7 +20,7 @@ function cssfilter(x) {
     node.innerHTML = "";
     if(x.target.value != "") {
         node.innerHTML = `a.tab {display:none} a.tab[href*="${x.target.value}"] {display:block} `;
-
+        // TODO someday when :has works, also hide the empty groups
     }
 }
 
@@ -96,6 +96,14 @@ function groupclick(event) {
     let ts = parseInt(event.target.parentNode.id);
     let shiftclick = event.shiftKey
   
+    if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
+        chrome.tabs.create({url:'data:text/html,' +
+                                '<html><style>a{display:block}</style>' +
+                                me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"/g, '') +
+                                '</html>' })
+
+        return false;
+    }
   
     if( event.clientX > event.target.offsetLeft && !shiftclick) {
         // if inside box, make editable
@@ -330,6 +338,7 @@ function renderGroup(data, ddiv=null) {
     ddiv = ddiv || document.createElement("div");
     ddiv.id = data.ts;
     ddiv.innerHTML = '';
+    ddiv.className = 'group';
 
     ddiv.appendChild(renderHeader(data));
 

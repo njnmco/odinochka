@@ -25,15 +25,15 @@
 
       margin-left: 3em;
       padding-left: 3em;
-      display: block;
-      float: left;
-      clear:both;
+      display: list-item;
+      list-style: none;
 
     }
 
     header.tab {
         margin-bottom: .5em;
         font-size: 110%;
+        display: inline-block;
     }
 
     .tab:hover::before {
@@ -42,6 +42,11 @@
       padding-right:3.25em;
       text-decoration: none;
         /*border: dashed 1px;*/
+    }
+
+    header.tab:hover::after {
+      content: "\00a0\00a0\00a0\2197";
+      text-decoration: none;
     }
 
     fieldset {
@@ -58,6 +63,7 @@
   </head>
   <body>
 
+      
     <header>
         <h1>Odinochka</h1>
         <h2 id=size></h2>
