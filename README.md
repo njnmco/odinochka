@@ -36,6 +36,7 @@ Not Great Suspender compatible
       - [x] Restore
       - [x] Rename
       - [x] Delete
+      - [x] pop out
     - [x] Counter
     - [x] Options
       - [x] skip pinned tabs
