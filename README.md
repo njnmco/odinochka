@@ -42,6 +42,7 @@ Not Great Suspender compatible
       - [x] Autoremove links
       - [x] How to open Groups
       - [x] Filter Duplicates
+      - [x] Import / Export
     - [x] Filter box
     - [x] refresh in place
 

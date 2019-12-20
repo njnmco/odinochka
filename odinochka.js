@@ -22,10 +22,74 @@ function cssfilter(x) {
         node.innerHTML = `a.tab {display:none} a.tab[href*="${x.target.value}"] {display:block} `;
 
     }
-    
-
 }
 
+function doImport() {
+    const selectedFile = document.forms['options'].elements['importfile'].files[0]
+
+    let reader = new FileReader();
+    
+    reader.onload = function(event) {
+        let tabs = JSON.parse(event.target.result);
+        console.log(tabs)
+
+
+        window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+            let db = event.target.result;
+
+            let tx = db.transaction('tabgroups', 'readwrite');
+            let store = tx.objectStore('tabgroups');
+            let saveNext = function() {
+                if(tabs.length) {
+                    store.put(tabs.pop()).onsuccess = saveNext
+                }
+                else {
+                    render()
+                }
+            }
+            saveNext()
+        }
+
+    }
+    reader.readAsText(selectedFile);
+
+
+    return false;
+}
+
+function doExport() {
+    console.log(this)
+    let result = [];
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        let db = event.target.result;
+
+        let tx = db.transaction('tabgroups', 'readonly');
+        let store = tx.objectStore('tabgroups');
+
+        updateCount(store);
+
+        store.openCursor(null, "prev").onsuccess = function(event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                result.push(cursor.value);
+                cursor.continue();
+            }
+            else {
+                // snippet by elite, https://stackoverflow.com/a/45831357
+                let filename = "odinochka.json";
+                let blob = new Blob([JSON.stringify(result)], {type: 'text/plain'});
+                let e = document.createEvent('MouseEvents'),
+                    a = document.createElement('a');
+                a.download = filename;
+                a.href = window.URL.createObjectURL(blob);
+                a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+                e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(e);
+            }
+        };
+    };
+    return false;
+}
 
 function groupclick(event) {
     let me = event.target;
@@ -214,6 +278,13 @@ function initOptions() {
 
 
     document.getElementsByName("filter")[0].oninput = cssfilter;
+
+    // Import / Export feature
+    document.getElementsByName("importfile")[0].onchange = function() {
+            this.setAttribute('value', this.value);
+    };
+    document.getElementsByName("import")[0].onclick = doImport;
+    document.getElementsByName("export")[0].onclick = doExport;
 
 }
 

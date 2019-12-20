@@ -3,11 +3,6 @@
   <head>
     <title>Odinochka</title>
     <style>
-    button {
-      height: 30px;
-      width: 30px;
-      outline: none;
-    }
 
     header, footer, article, div {
       clear:both;
@@ -54,6 +49,9 @@
         border-style: dashed;
     }
 
+    button[name=import] {display:none}
+    input[name=importfile][value]:not([value=""]) ~ button[name=import] {display:block}
+
     </style>
     <style id=cssfilterstyle>
     </style>
@@ -97,6 +95,12 @@
             <input type=radio name=group value=new><label>Always new window</label><br/>
             <input type=radio name=group value=smart><label>Smart</label><br/>
             <input type=radio name=group value=current><label>Always current window</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>Data backup</legend>
+            <input type=file name=importfile><br/>
+            <button name=import>Import</button><br/>
+            <button name=export>Export</button>
         </fieldset>
 
         </fieldset></form>
