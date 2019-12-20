@@ -97,10 +97,12 @@ function groupclick(event) {
     let shiftclick = event.shiftKey
   
     if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
-        chrome.tabs.create({url:'data:text/html,' +
-                                '<html><style>a{display:block}</style>' +
-                                me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"/g, '') +
-                                '</html>' })
+        chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
+                                encodeURIComponent(
+                                    '<html><style>a{display:block}</style>' +
+                                    me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"|style="[^"]*"/g, '') +
+                                    '</html>'
+                                )  })
 
         return false;
     }
