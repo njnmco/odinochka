@@ -17,10 +17,12 @@ function newTabs(data) {
 
 function cssfilter(x) {
     let node = document.getElementById("cssfilterstyle");
-    node.innerHTML = "";
     if(x.target.value != "") {
-        node.innerHTML = `a.tab {display:none} a.tab[href*="${x.target.value}"] {display:block} `;
+        node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
         // TODO someday when :has works, also hide the empty groups
+    }
+    else {
+        node.innerHTML = "";
     }
 }
 
