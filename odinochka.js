@@ -175,7 +175,7 @@ function groupblur(event) {
     var me = event.target;
     var ts = parseInt(event.target.parentNode.id);
   
-    trimmer = function(s) {
+    var trimmer = function(s) {
         var i = s.indexOf("@");
         if(i != -1) s = s.substr(0, i);
         return s.trim()
@@ -309,12 +309,24 @@ function closeOthers() {
     )
 }
 
+function fmtDate (ts) {
+    let d = new Date();
+    let thisYear = d.getYear()
+    d.setTime(ts);
+    return d.toLocaleString(
+        undefined, //undefined uses browser default
+        Object.assign(
+            {weekday:'short', month: 'short', day: 'numeric',  hour:'numeric', minute:'numeric'},
+            d.getYear() == thisYear ? {} : {year:"numeric"}
+        )
+    )
+}
+
+
 function renderHeader(data, header=null) {
     header = header || document.createElement("header");
 
-    let prettyTime = new Date();
-    prettyTime.setTime(data.ts);
-    header.innerText = `${data.name} @ ${prettyTime.toUTCString()}`;
+    header.innerHTML = `${data.name} @ ${fmtDate(data.ts)}`;
 
     header.className = "tab";
     header.ondblclick = groupclick;
