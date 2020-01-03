@@ -273,13 +273,15 @@ function initOptions() {
         dupe: "keep",
         restore: "remove",
         group: "smart",
-        pinned: "skip"
+        pinned: "skip",
+        favicon: "show"
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
         for(let i in o) document.forms["options"].elements[i].forEach(
             e => e.checked = e.value == o[i]
         )
+        document.getElementById('faviconstyle').media = o.favicon == 'hide' ? "not all" : 'all'; //set initial state
     })
 
     document.forms["options"].onchange = function (e) {
@@ -290,6 +292,10 @@ function initOptions() {
 
 
     document.getElementsByName("filter")[0].oninput = cssfilter;
+
+    for (e of document.getElementsByName("favicon")) {
+        e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
+    }
 
     // Import / Export feature
     document.getElementsByName("importfile")[0].onchange = function() {

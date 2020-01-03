@@ -16,18 +16,12 @@
     }
 
     a.tab {
-      background-image: var(--bg-favicon);
-      background-repeat: no-repeat;
-      background-position: left center;
-      background-size: 1em 1em;
-
+      display: list-item;
+      list-style: none;
       text-decoration: none;
 
       margin-left: 3em;
       padding-left: 3em;
-      display: list-item;
-      list-style: none;
-
     }
 
     header.tab {
@@ -59,6 +53,14 @@
 
     </style>
     <style id=cssfilterstyle>
+    </style>
+    <style id=faviconstyle media="not all">
+    a.tab {
+      background-image: var(--bg-favicon);
+      background-repeat: no-repeat;
+      background-position: left center;
+      background-size: 1em 1em;
+    }
     </style>
   </head>
   <body>
@@ -101,6 +103,11 @@
             <input type=radio name=group value=new><label>Always new window</label><br/>
             <input type=radio name=group value=smart><label>Smart</label><br/>
             <input type=radio name=group value=current><label>Always current window</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>Favicons</legend>
+            <input type=radio name=favicon value=show><label>Show</label><br/>
+            <input type=radio name=favicon value=hide><label>Hide</label><br/>
         </fieldset>
         <fieldset>
             <legend>Data backup</legend>
