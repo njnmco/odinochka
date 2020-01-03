@@ -44,6 +44,7 @@ Not Great Suspender compatible
       - [x] How to open Groups
       - [x] Filter Duplicates
       - [x] Import / Export
+      - [x] disable favicons
     - [x] Filter box
     - [x] refresh in place
 
