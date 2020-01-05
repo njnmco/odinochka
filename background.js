@@ -115,9 +115,10 @@ function saveTabs(tabs, newGroup=true, show=true) {
                 })
             }
 
-
+            let alsoUpdate = {};
             let closeTabs = function(event) {
                 let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
+                data.update = alsoUpdate;
                 show ? showOdinochka(cb, data) : reloadOdinochka(cb, data);
             };
 
@@ -160,6 +161,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
                         dupe.urls = dupe.tabs.map(a => a.url);
 
                         let req = dupe.tabs.length ? tabCursor.update(dupe) : tabCursor.delete();
+                        alsoUpdate[dupe.ts] = dupe.tabs.length ? dupe : 'd';
 
                         req.onsuccess = () => tabCursor.continue();
                     }

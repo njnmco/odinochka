@@ -413,6 +413,17 @@ function update(data) {
         groupdiv.insertBefore(renderGroup(data), child);
     }
 
+    for(let i in data.update) {
+       let node = document.getElementById(i);
+       if (!node) continue;
+       if (data.update[i] == 'd') {
+           node.remove()
+       }
+       else {
+           renderGroup(data.update[i], node);
+       }
+    }
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
         let tx = db.transaction('tabgroups', 'readonly');
