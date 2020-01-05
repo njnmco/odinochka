@@ -198,11 +198,15 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 // options
 var options = {}
-chrome.storage.local.get({dupe: "keep", pinned: "skip", advanced: ""}, o => Object.assign(options, o))
+chrome.storage.local.get(
+    {dupe: "keep", pinned: "skip", advanced: ""},
+    o => Object.assign(options, o) && doAdvanced(o.advanced)
+)
 
 chrome.storage.onChanged.addListener(function(changes, areaName) {
     if(areaName != "local") return;
     for(let i in changes) options[i] = changes[i].newValue;
+    doAdvanced(options.advanced);
 })
 
 
@@ -265,3 +269,41 @@ function reloadOdinochka(callback, data={}) {
     )
 }
 
+// Automated backup to s3
+
+
+function postTabs(url) {
+    let result = [];
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        let db = event.target.result;
+        let tx = db.transaction('tabgroups', 'readonly');
+        let store = tx.objectStore('tabgroups');
+
+        store.openCursor(null, "prev").onsuccess = function(event) {
+            let cursor = event.target.result;
+            if (cursor) {
+                result.push(cursor.value);
+                cursor.continue();
+            }
+            else {
+                console.log({posted: result.length});
+                var xhr = new XMLHttpRequest();
+                xhr.open("PUT", url, true);
+                xhr.send(JSON.stringify(result));
+            }
+        }
+    }
+}
+ 
+let odInterval = null;
+function doAdvanced(advanced) {
+    clearInterval(odInterval);
+    if( /I know what I'm doing/.test(advanced)) {
+        let advancedOptions = JSON.parse(advanced);
+        console.log(advancedOptions);
+
+        let callback = postTabs.bind(null, advancedOptions.url);
+        odInterval = setInterval(callback, advancedOptions.interval)
+
+    }
+}
