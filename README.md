@@ -55,3 +55,14 @@ Russian for singleton, but also:
   - Loner
   - Alaskan trading posts
   - solitary confinement
+
+## Restoring from a crash
+
+You can use the below `jq` command to convert from an [Export History extension](https://chrome.google.com/webstore/detail/export-historybookmarks-t/dcoegfodcnjofhjfbhegcgjgapeichlf)
+dump format to a file that can be read back in to odinochka.
+
+```
+jq '[{ts:1, name:"restore", tabs:[.[] | {title:.title, url:.url, favicon:"", pinned:false}], urls:[.[].url]}]' history_export.json  >history2.json
+```
+
+Chrome can mysteriously delete data whenever it crashes, so I recommend regularly backing up your tabs using the export feature.
