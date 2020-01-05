@@ -63,10 +63,13 @@
           position:sticky;
           background:white;
           bottom:0;
+          min-height: 2em;
+          padding-top: .5em;
+          padding-bottom: .5em;
       }
-      .lbl-toggle { float: left }
+      .lbl-toggle { float: left; padding-top: 1em; }
 
-      .lbl-toggle ~ p { margin-left: 2em; margin-bottom: 1em;}
+      .lbl-toggle ~ p { margin-left: 2em; margin-bottom: 1em}
 
       form.options, input.toggle { display: none; }
 
@@ -142,7 +145,7 @@
         <div></div>
         <fieldset style="width: 95%">
             <legend>Advanced...</legend>
-            <textarea name=advanced rows=20 style="width: 100%"></textarea>
+            <textarea name=advanced rows=12 style="width: 100%"></textarea>
         </fieldset>
 
         </fieldset></form>
