@@ -274,13 +274,20 @@ function initOptions() {
         restore: "remove",
         group: "smart",
         pinned: "skip",
-        favicon: "show"
+        favicon: "show",
+        advanced: ""
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
-        for(let i in o) document.forms["options"].elements[i].forEach(
-            e => e.checked = e.value == o[i]
-        )
+        for(let i in o) {
+            if (i == 'advanced') {
+                document.forms["options"].elements[i].value = o[i];
+                continue;
+            }
+            document.forms["options"].elements[i].forEach(
+                e => e.checked = e.value == o[i]
+            )
+        }
         document.getElementById('faviconstyle').media = o.favicon == 'hide' ? "not all" : 'all'; //set initial state
     })
 

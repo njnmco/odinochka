@@ -196,7 +196,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 // options
 var options = {}
-chrome.storage.local.get({dupe: "keep", pinned: "skip"}, o => Object.assign(options, o))
+chrome.storage.local.get({dupe: "keep", pinned: "skip", advanced: ""}, o => Object.assign(options, o))
 
 chrome.storage.onChanged.addListener(function(changes, areaName) {
     if(areaName != "local") return;

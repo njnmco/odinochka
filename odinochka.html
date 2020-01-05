@@ -22,6 +22,7 @@
 
       margin-left: 3em;
       padding-left: 3em;
+      width: fit-content;
     }
 
     header.tab {
@@ -52,6 +53,23 @@
     input[name=importfile][value]:not([value=""]) ~ button[name=import] {display:block}
 
     </style>
+    <style>
+      /* toggle based on https://alligator.io/css/collapsible/ */
+      footer {
+          position:sticky;
+          background:white;
+          bottom:0;
+      }
+      .lbl-toggle { float: left }
+
+      .lbl-toggle ~ p { margin-left: 2em; margin-bottom: 1em;}
+
+      form.options, input.toggle { display: none; }
+
+      .toggle:checked + .lbl-toggle + form.options{
+          display: block;
+      }
+    </style>
     <style id=cssfilterstyle>
     </style>
     <style id=faviconstyle media="not all">
@@ -79,7 +97,9 @@
     </div>
 
     <footer>
-        <form name=options><fieldset>
+        <input id="collapsible" class="toggle" type="checkbox">
+        <label for="collapsible" class="lbl-toggle">&#x2630;</label>
+        <form name=options class=options><fieldset>
                 <legend>Options</legend>
 
         <fieldset>
@@ -114,6 +134,11 @@
             <input type=file name=importfile><br/>
             <button name=import>Import</button><br/>
             <button name=export>Export</button>
+        </fieldset>
+        <div></div>
+        <fieldset style="width: 95%">
+            <legend>Advanced...</legend>
+            <textarea name=advanced rows=20 style="width: 100%"></textarea>
         </fieldset>
 
         </fieldset></form>
