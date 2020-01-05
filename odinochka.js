@@ -33,7 +33,6 @@ function doImport() {
     
     reader.onload = function(event) {
         let tabs = JSON.parse(event.target.result);
-        console.log(tabs)
 
 
         window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -60,7 +59,6 @@ function doImport() {
 }
 
 function doExport() {
-    console.log(this)
     let result = [];
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
