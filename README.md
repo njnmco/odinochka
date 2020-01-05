@@ -47,6 +47,7 @@ Not Great Suspender compatible
       - [x] disable favicons
     - [x] Filter box
     - [x] refresh in place
+  - [x] automated cloud backup
 
 ## Etymology
 
@@ -56,7 +57,9 @@ Russian for singleton, but also:
   - Alaskan trading posts
   - solitary confinement
 
-## Restoring from a crash
+## Advanced Features
+
+### Restoring from a history dump
 
 You can use the below `jq` command to convert from an [Export History extension](https://chrome.google.com/webstore/detail/export-historybookmarks-t/dcoegfodcnjofhjfbhegcgjgapeichlf)
 dump format to a file that can be read back in to odinochka.
@@ -65,4 +68,25 @@ dump format to a file that can be read back in to odinochka.
 jq '[{ts:1, name:"restore", tabs:[.[] | {title:.title, url:.url, favicon:"", pinned:false}], urls:[.[].url]}]' history_export.json  >history2.json
 ```
 
-Chrome can mysteriously delete data whenever it crashes, so I recommend regularly backing up your tabs using the export feature.
+Chrome can mysteriously delete data whenever it crashes, so I recommend regularly backing up your tabs using the export features.
+
+### Automated cloud backup
+
+To enable automated cloud backup, add the following to the "Advanced options":
+
+```
+{
+"url": "https://MY.REST/ENDPOINT",
+"interval": 600000,
+"consent": "I know what I'm doing."
+}
+```
+
+A timer (interval in ms) will PUT the exported tab database to the specified URL.
+
+To use Amazon AWS for storage:
+
+  * Create an S3 bucket
+  * Proxy the bucket using AWS API Gateway (see [tutorial](https://docs.aws.amazon.com/apigateway/latest/developerguide/integrating-api-with-aws-services-s3.html#api-items-in-folder-as-s3-objects-in-bucket))
+  * Enable [CORS](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html#how-to-cors-console) on the Gateway
+
