@@ -270,9 +270,7 @@ function reloadOdinochka(callback, data={}) {
 }
 
 // Automated backup to s3
-
-
-function postTabs(url) {
+function postTabs(url, method, alarm) {
     let result = [];
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
@@ -286,24 +284,24 @@ function postTabs(url) {
                 cursor.continue();
             }
             else {
-                console.log({posted: result.length});
+                console.log({date: new Date(), numGroups: result.length});
                 var xhr = new XMLHttpRequest();
-                xhr.open("PUT", url, true);
+                xhr.open(method, url, true);
                 xhr.send(JSON.stringify(result));
             }
         }
     }
 }
  
-let odInterval = null;
+let alarmCallback = null;
 function doAdvanced(advanced) {
-    clearInterval(odInterval);
+    chrome.alarms.onAlarm.removeListener(alarmCallback);
+    alarmCallback = null;
     if( /I know what I'm doing/.test(advanced)) {
         let advancedOptions = JSON.parse(advanced);
         console.log(advancedOptions);
-
-        let callback = postTabs.bind(null, advancedOptions.url);
-        odInterval = setInterval(callback, advancedOptions.interval)
-
+        chrome.alarms.create("odinochka", {delayInMinutes:1, periodInMinutes: advancedOptions.interval});
+        alarmCallback = postTabs.bind(null, advancedOptions.url, advancedOptions.method);
+        chrome.alarms.onAlarm.addListener(alarmCallback);
     }
 }

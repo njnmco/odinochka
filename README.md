@@ -77,12 +77,13 @@ To enable automated cloud backup, add the following to the "Advanced options":
 ```
 {
 "url": "https://MY.REST/ENDPOINT",
-"interval": 600000,
+"method": "PUT",
+"interval": 30,
 "consent": "I know what I'm doing."
 }
 ```
 
-A timer (interval in ms) will PUT the exported tab database to the specified URL.
+A timer (interval in minutes) will XHR the dumped tab database to the specified URL.
 
 To use Amazon AWS for storage:
 
