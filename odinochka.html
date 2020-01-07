@@ -54,6 +54,11 @@
     button[name=import] {display:none}
     input[name=importfile][value]:not([value=""]) ~ button[name=import] {display:block}
 
+    div#groups {
+        display: flex;
+        flex-direction: column;
+    }
+
     </style>
     <style>
       /* toggle based on https://alligator.io/css/collapsible/ */
@@ -133,6 +138,11 @@
             <legend>Favicons</legend>
             <input type=radio name=favicon value=show><label>Show</label><br/>
             <input type=radio name=favicon value=hide><label>Hide</label><br/>
+        </fieldset>
+        <fieldset>
+            <legend>Sort order</legend>
+            <input type=radio name=order value=asc><label>Oldest First</label><br/>
+            <input type=radio name=order value=desc><label>Newest First</label><br/>
         </fieldset>
         <fieldset>
             <legend>Data backup</legend>

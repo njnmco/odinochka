@@ -273,6 +273,7 @@ function initOptions() {
         group: "smart",
         pinned: "skip",
         favicon: "show",
+        order: 'asc',
         advanced: ""
     }
 
@@ -287,6 +288,7 @@ function initOptions() {
             )
         }
         document.getElementById('faviconstyle').media = o.favicon == 'hide' ? "not all" : 'all'; //set initial state
+        document.getElementById('groups').style['flex-direction'] = o.order == 'asc' ? 'column-reverse' : 'column';
     })
 
     document.forms["options"].onchange = function (e) {
@@ -300,6 +302,10 @@ function initOptions() {
 
     for (e of document.getElementsByName("favicon")) {
         e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
+    }
+
+    for (e of document.getElementsByName("order")) {
+        e.onchange = function(e) {document.getElementById('groups').style['flex-direction'] = this.value == 'asc' ? 'column-reverse' : 'column'}
     }
 
     // Import / Export feature
