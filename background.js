@@ -7,6 +7,11 @@ chrome.runtime.onInstalled.addListener(function(){
 		  contexts: ["browser_action"],
 	});
 	chrome.contextMenus.create({
+		  id: "odinochka_help",
+		  title: "help",
+		  contexts: ["browser_action"],
+	});
+	chrome.contextMenus.create({
           id: "odinochka_sep",
           type: "separator",
 		  contexts: ["browser_action"],
@@ -51,6 +56,8 @@ chrome.runtime.onInstalled.addListener(function(){
       objectStore.createIndex("urls", "urls", {multiEntry: true});
     };
  
+    chrome.tabs.create({ url: "help.html" })
+
 });
 
 
@@ -221,6 +228,9 @@ chrome.commands.onCommand.addListener(command_handler);
 function command_handler(command, showOnSingleTab=false){
     if (command == "odinochka_show") {
        showOdinochka()
+    }
+    if (command == "odinochka_help") {
+       chrome.tabs.create({ url: "help.html" })
     }
     if (command == "odinochka_save_tab") {
        chrome.tabs.query(
