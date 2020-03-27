@@ -15,6 +15,22 @@ function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
 }
 
+function debounce(func, wait, immediate) {
+    let timeout;
+    return function(e) {
+        const context = e,
+                args = arguments;
+        const later = () => {
+                        timeout = null;
+                        if (!immediate) func.apply(context, args);
+                    };
+        const callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+}
+
 function cssfilter(x) {
     let node = document.getElementById("cssfilterstyle");
     if(x.target.value != "") {
@@ -298,7 +314,7 @@ function initOptions() {
     }
 
 
-    document.getElementsByName("filter")[0].oninput = cssfilter;
+    document.getElementsByName("filter")[0].oninput = debounce(cssfilter, 50);
 
     for (e of document.getElementsByName("favicon")) {
         e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
