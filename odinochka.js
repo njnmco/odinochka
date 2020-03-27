@@ -46,7 +46,7 @@ function filterResults(e) {
 
         let allRecords = store.getAll()
         allRecords.onsuccess = function() {
-            const filteredAppData = allRecords.result.filter(function(cursor) {
+            const filteredResults = allRecords.result.filter(function(cursor) {
                 return cursor.tabs.some(function(tab) {
                     if (tab.title.toLowerCase().match(query) || tab.url.toLowerCase().match(query)) {
                         return true
@@ -54,7 +54,7 @@ function filterResults(e) {
                     return false
                 })
             })
-            render(filteredAppData)
+            render(filteredResults)
         }
     };
 }
@@ -414,15 +414,15 @@ function renderGroup(data, ddiv=null) {
     return ddiv;
 }
 
-// param:appData type: array
-function render(filteredAppData) {
+// param: filteredResults type: array
+function render(filteredResults) {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
 
-    if (filteredAppData && filteredAppData.length) {
-        filteredAppData.forEach(function(cursor) {
-            groupdiv.appendChild(renderGroup(cursor));
+    if (filteredResults && filteredResults.length) {
+        filteredResults.forEach(function(result) {
+            groupdiv.appendChild(renderGroup(result));
         })
     } else {
         window.indexedDB.open("odinochka", 5).onsuccess = function(event){
