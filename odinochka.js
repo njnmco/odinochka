@@ -46,14 +46,22 @@ function filterResults(e) {
 
         let allRecords = store.getAll()
         allRecords.onsuccess = function() {
-            const filteredResults = allRecords.result.filter(function(cursor) {
-                return cursor.tabs.some(function(tab) {
-                    if (tab.title.toLowerCase().match(query) || tab.url.toLowerCase().match(query)) {
-                        return true
+            const filteredResults = allRecords.result
+                .map(function(cursor) {
+                    const filteredTabs = cursor.tabs
+                        .map(function(tab) {
+                            if (tab.title.toLowerCase().match(query)
+                                || tab.url.toLowerCase().match(query)) {
+                                return tab
+                            }
+                        })
+                        .filter(function(tab) { return tab !== undefined})
+                    if (filteredTabs.length) {
+                        cursor.tabs = filteredTabs
+                        return cursor
                     }
-                    return false
                 })
-            })
+                .filter(function(cursor) { return cursor !== undefined })
             render(filteredResults)
         }
     };
