@@ -64,13 +64,14 @@ function cssfilter(x) {
     }
     else {
         keepselector = `a.tab[href*="${newfiltertxt}"]`;
-        selector = `a.tab[href*=${prefix}]:not([href*="${newfiltertxt}"])`;
+        selector = `a.tab[href*="${prefix}"]:not([href*="${newfiltertxt}"])`;
     }
 
-    var hideGroups = new Set(Array.from(document.querySelectorAll(selector)).map(x => x.parentNode.id));
-    var keepGroups = new Set(Array.from(document.querySelectorAll(keepselector)).map(x => x.parentNode.id));
+    var hideGroups = new Set();
+    document.querySelectorAll(".group").forEach(
+        x => window.getComputedStyle(x).display == "block" &&
+             ! x.querySelector(keepselector) ? hideGroups.add(x.id) : null)
 
-    var hideGroups = Array.from(hideGroups).filter(x => !keepGroups.has(x));
     for(var hide of hideGroups) {
         selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
     }
