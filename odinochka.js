@@ -31,7 +31,7 @@ function debounce(func, wait, immediate) {
     };
 }
 
-function cssfilter(e) {
+function filterResults(e) {
     // render entire list from indexDB if input is empty
     var query = e.target.value
     if (query === '') {
@@ -333,7 +333,7 @@ function initOptions() {
     }
 
 
-    document.getElementsByName("filter")[0].addEventListener('input', debounce(cssfilter, 200))
+    document.getElementsByName("filter")[0].addEventListener('input', debounce(filterResults, 200))
 
     for (e of document.getElementsByName("favicon")) {
         e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
