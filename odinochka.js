@@ -15,22 +15,57 @@ function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
 }
 
-function cssfilter(x) {
-    let node = document.getElementById("cssfilterstyle");
-    if(x.target.value != "") {
-        node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
-        // TODO someday when :has works, also hide the empty groups
+function debounce(func, wait, immediate) {
+    let timeout;
+    return function(e) {
+        const context = e,
+            args = arguments;
+        const later = () => {
+            timeout = null;
+            if (!immediate) func.apply(context, args);
+        };
+        const callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+    };
+}
+
+function cssfilter(e) {
+    // render entire list from indexDB if input is empty
+    var query = e.target.value
+    if (query === '') {
+        render()
+        return
     }
-    else {
-        node.innerHTML = "";
-    }
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        let db = event.target.result;
+
+        let tx = db.transaction('tabgroups', 'readonly');
+        let store = tx.objectStore('tabgroups');
+
+        let allRecords = store.getAll()
+        allRecords.onsuccess = function() {
+            var filteredAppData = allRecords.result.filter(function(cursor) {
+                if (!cursor) return false
+                const result = cursor.tabs.some(function(tab) {
+                    if (tab.title.match(query) || tab.url.match(query)) {
+                        return true
+                    }
+                    return false
+                })
+                return result
+            })
+            render(filteredAppData)
+        }
+    };
 }
 
 function doImport() {
     const selectedFile = document.forms['options'].elements['importfile'].files[0]
 
     let reader = new FileReader();
-    
+
     reader.onload = function(event) {
         let tabs = JSON.parse(event.target.result);
 
@@ -95,7 +130,7 @@ function groupclick(event) {
     let me = event.target;
     let ts = parseInt(event.target.parentNode.id);
     let shiftclick = event.shiftKey
-  
+
     if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
         chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
                                 encodeURIComponent(
@@ -106,7 +141,7 @@ function groupclick(event) {
 
         return false;
     }
-  
+
     if( event.clientX > event.target.offsetLeft && !shiftclick) {
         // if inside box, make editable
         if(me.contentEditable == "false"){
@@ -116,27 +151,27 @@ function groupclick(event) {
         }
         return;
     }
-  
+
     if(!shiftclick) { // if not shift, then was x
         if(!confirm("Delete this group?")) return;
     }
-  
-  
+
+
     // delete it
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
         let tx = db.transaction('tabgroups', 'readwrite');
         let store = tx.objectStore('tabgroups');
-  
-  
+
+
         if(!shiftclick) { // if not shift, then was x
             removeAndUpdateCount(store.delete(ts), me.parentNode)
             return;
         }
-  
+
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result;
-  
+
             // smart selection
             var group = document.forms["options"].elements["group"].value;
             let restore = document.forms["options"].elements["restore"].value;
@@ -153,26 +188,26 @@ function groupclick(event) {
                     w => w.length <= 1 ? newTabs(data) : newWindow(data)
                 )
             }
-  
-  
+
+
             // clean up
             if(!locked && restore != "keep") {
                 removeAndUpdateCount(store.delete(ts), me.parentNode);
             }
-  
+
         }
-  
-  
+
+
     }
-    
-    
+
+
 }
 
 
 function groupblur(event) {
     var me = event.target;
     var ts = parseInt(event.target.parentNode.id);
-  
+
     var trimmer = function(s) {
         var i = s.indexOf("@");
         if(i != -1) s = s.substr(0, i);
@@ -190,7 +225,7 @@ function groupblur(event) {
 
     if(newtxt == oldtxt) return;
 
-    
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         var db = event.target.result;
 
@@ -204,7 +239,7 @@ function groupblur(event) {
         }
 
     }
-      
+
 }
 
 function removeAndUpdateCount(request, me) {
@@ -298,7 +333,7 @@ function initOptions() {
     }
 
 
-    document.getElementsByName("filter")[0].oninput = cssfilter;
+    document.getElementsByName("filter")[0].addEventListener('input', debounce(cssfilter, 200))
 
     for (e of document.getElementsByName("favicon")) {
         e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
@@ -381,28 +416,34 @@ function renderGroup(data, ddiv=null) {
     return ddiv;
 }
 
-function render() {
-
+// param:appData type: array
+function render(filteredAppData) {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
 
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        let db = event.target.result;
+    if (filteredAppData && filteredAppData.length) {
+        filteredAppData.forEach(function(cursor) {
+            groupdiv.appendChild(renderGroup(cursor));
+        })
+    } else {
+        window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+            let db = event.target.result;
 
-        let tx = db.transaction('tabgroups', 'readonly');
-        let store = tx.objectStore('tabgroups');
+            let tx = db.transaction('tabgroups', 'readonly');
+            let store = tx.objectStore('tabgroups');
 
-        updateCount(store);
+            updateCount(store);
 
-        store.openCursor(null, "prev").onsuccess = function(event) {
-            let cursor = event.target.result;
-            if (cursor) {
-                groupdiv.appendChild(renderGroup(cursor.value));
-                cursor.continue();
-            }
+            store.openCursor(null, "prev").onsuccess = function(event) {
+                let cursor = event.target.result;
+                if (cursor) {
+                    groupdiv.appendChild(renderGroup(cursor.value));
+                    cursor.continue();
+                }
+            };
         };
-    };
+    }
 
 }
 
