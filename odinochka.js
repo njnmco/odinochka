@@ -33,7 +33,7 @@ function debounce(func, wait, immediate) {
 
 function filterResults(e) {
     // render entire list from indexDB if input is empty
-    var query = e.target.value
+    const query = e.target.value
     if (query === '') {
         render()
         return
@@ -46,15 +46,13 @@ function filterResults(e) {
 
         let allRecords = store.getAll()
         allRecords.onsuccess = function() {
-            var filteredAppData = allRecords.result.filter(function(cursor) {
-                if (!cursor) return false
-                const result = cursor.tabs.some(function(tab) {
+            const filteredAppData = allRecords.result.filter(function(cursor) {
+                return cursor.tabs.some(function(tab) {
                     if (tab.title.match(query) || tab.url.match(query)) {
                         return true
                     }
                     return false
                 })
-                return result
             })
             render(filteredAppData)
         }
