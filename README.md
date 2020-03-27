@@ -2,19 +2,25 @@
 
 ## OneTab
 
-I am a heavy OneTab user.
+I was a heavy OneTab user.
 
-5k+ tabs.
+I had 5k+ tabs before my "data loss incident", when GoToMeeting
+went berserk, crashed chrome, and my tabs were gone...
 
-Slow
+Towards the end, it was:
 
-GA tracking
+  - Slow
+  - GA tracking
+    * who knows what they are doing with my tab data
+  - Requests 900 favicons on boot via Google proxy
+    * This also breaks locally hosted apps favicons
+  - Not Great Suspender compatible
+    * I've req'd this feature at least a few times over last 3 years.
+  - Not backed up anywhere
+    * Export is manual and in a crap format.
+    * When the tabs are gone, they are gone.
 
-Requests 900 favicons on boot via Google proxy
-  * This also breaks locally hosted apps favicons
-
-Not Great Suspender compatible
-  - I've req'd this feature at least a few times over last 3 years.
+So I wrote my own.
 
 ## TODO
   - [x] Save Tabs
