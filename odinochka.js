@@ -31,15 +31,56 @@ function debounce(func, wait, immediate) {
     };
 }
 
+var filtertxt = "";
 function cssfilter(x) {
     let node = document.getElementById("cssfilterstyle");
-    if(x.target.value != "") {
-        node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
-        // TODO someday when :has works, also hide the empty groups
+    if(x.target.value == "") {
+        node.innerHTML = "";
+        filtertxt = "";
+        return;
+    }
+    let newfiltertxt = x.target.value;
+    let css = node.sheet;
+
+    var prefix = ""
+    for(var i = css.cssRules.length - 1; i >=0; i--) {
+        var rule = css.cssRules[i];
+        var pref = /:not\(\[href\*="(.*)"]\)/.exec(rule.selectorText)[1]
+        if(newfiltertxt.startsWith(pref)) {
+            prefix = pref;
+            break;
+        }
+        css.deleteRule(i); // have shortened query, delete
+    }
+
+    if(prefix == newfiltertxt) {
+        filtertxt = newfiltertxt;
+        return;
+    }
+
+    if(prefix == "") {
+        keepselector = `a.tab[href*="${newfiltertxt}"]`;
+        selector = `a.tab:not([href*="${newfiltertxt}"])`;
     }
     else {
-        node.innerHTML = "";
+        keepselector = `a.tab[href*="${newfiltertxt}"]`;
+        selector = `a.tab[href*=${prefix}]:not([href*="${newfiltertxt}"])`;
     }
+
+    var hideGroups = new Set(Array.from(document.querySelectorAll(selector)).map(x => x.parentNode.id));
+    var keepGroups = new Set(Array.from(document.querySelectorAll(keepselector)).map(x => x.parentNode.id));
+
+    var hideGroups = Array.from(hideGroups).filter(x => !keepGroups.has(x));
+    for(var hide of hideGroups) {
+        selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
+    }
+
+    css.insertRule(selector + "{display:none}", css.cssRules.length);
+
+    //node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
+    // TODO someday when :has works, also hide the empty groups
+    //
+    filtertxt = newfiltertxt;
 }
 
 function doImport() {
