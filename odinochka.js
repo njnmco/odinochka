@@ -48,7 +48,7 @@ function filterResults(e) {
         allRecords.onsuccess = function() {
             const filteredAppData = allRecords.result.filter(function(cursor) {
                 return cursor.tabs.some(function(tab) {
-                    if (tab.title.match(query) || tab.url.match(query)) {
+                    if (tab.title.toLowerCase().match(query) || tab.url.toLowerCase().match(query)) {
                         return true
                     }
                     return false
