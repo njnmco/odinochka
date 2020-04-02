@@ -36,16 +36,12 @@ function attachUrlListSycher() {
                 //console.log({mut:mut})
                 let bf = mut.target.getAttribute("data-urls")
                 mut.removedNodes.forEach(x =>
-                    mut.target.setAttribute("data-urls",
-                        mut.target.getAttribute("data-urls").replace(RSEP + x.href + RSEP, RSEP)
-                    )
+                        bf = bf.replace(RSEP + x.href + RSEP, RSEP)
                 );
                 mut.addedNodes.forEach(x =>
-                    mut.target.setAttribute("data-urls",
-                        mut.target.getAttribute("data-urls") + RSEP + x.href + RSEP
-                    )
+                        bf += RSEP + x.href + RSEP
                 )
-                let af = mut.target.getAttribute("data-urls")
+                mut.target.setAttribute("data-urls", bf)
                 //console.log({bf:bf, mut:mut, af:af})
             }
         }
@@ -115,24 +111,26 @@ function cssfilter(x) {
     }
 
     if(prefix == "") {
-        keepselector = `a.tab[href*="${newfiltertxt}"]`;
-        selector = `a.tab:not([href*="${newfiltertxt}"])`;
+        //keepselector = `a.tab[href*="${newfiltertxt}"]`;
+        selector  = `a.tab:not([href*="${newfiltertxt}"])`;
+        selector2 = `div.group:not([data-urls*="${newfiltertxt}"])`;
     }
     else {
         keepselector = `a.tab[href*="${newfiltertxt}"]`;
-        selector = `a.tab[href*="${prefix}"]:not([href*="${newfiltertxt}"])`;
+        selector  = `a.tab[href*="${prefix}"]:not([href*="${newfiltertxt}"])`;
+        selector2 = `div.group[data-urls*="${prefix}"]:not([data-urls*="${newfiltertxt}"])`;
     }
 
-    var hideGroups = new Set();
-    document.querySelectorAll(".group").forEach(
-        x => window.getComputedStyle(x).display == "block" &&
-             ! x.querySelector(keepselector) ? hideGroups.add(x.id) : null)
+//    var hideGroups = new Set();
+//    document.querySelectorAll(".group").forEach(
+//        x => window.getComputedStyle(x).display == "block" &&
+//             ! x.querySelector(keepselector) ? hideGroups.add(x.id) : null)
+//
+//    for(var hide of hideGroups) {
+//        selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
+//    }
 
-    for(var hide of hideGroups) {
-        selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
-    }
-
-    css.insertRule(selector + "{display:none}", css.cssRules.length);
+    css.insertRule(`${selector}, ${selector2} {display:none}`, css.cssRules.length);
 
     //node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
     // TODO someday when :has works, also hide the empty groups
