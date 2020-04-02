@@ -92,50 +92,51 @@ function cssfilter(x) {
         return;
     }
     let newfiltertxt = x.target.value;
-    let css = node.sheet;
-
-    var prefix = ""
-    for(var i = css.cssRules.length - 1; i >=0; i--) {
-        var rule = css.cssRules[i];
-        var pref = /:not\(\[href\*="(.*)"]\)/.exec(rule.selectorText)[1]
-        if(newfiltertxt.startsWith(pref)) {
-            prefix = pref;
-            break;
-        }
-        css.deleteRule(i); // have shortened query, delete
-    }
-
-    if(prefix == newfiltertxt) {
-        filtertxt = newfiltertxt;
-        return;
-    }
-
-    if(prefix == "") {
-        //keepselector = `a.tab[href*="${newfiltertxt}"]`;
-        selector  = `a.tab:not([href*="${newfiltertxt}"])`;
-        selector2 = `div.group:not([data-urls*="${newfiltertxt}"])`;
-    }
-    else {
-        keepselector = `a.tab[href*="${newfiltertxt}"]`;
-        selector  = `a.tab[href*="${prefix}"]:not([href*="${newfiltertxt}"])`;
-        selector2 = `div.group[data-urls*="${prefix}"]:not([data-urls*="${newfiltertxt}"])`;
-    }
-
-//    var hideGroups = new Set();
-//    document.querySelectorAll(".group").forEach(
-//        x => window.getComputedStyle(x).display == "block" &&
-//             ! x.querySelector(keepselector) ? hideGroups.add(x.id) : null)
-//
-//    for(var hide of hideGroups) {
-//        selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
-//    }
-
-    css.insertRule(`${selector}, ${selector2} {display:none}`, css.cssRules.length);
+//     let css = node.sheet;
+// 
+//     var prefix = ""
+//     for(var i = css.cssRules.length - 1; i >=0; i--) {
+//         var rule = css.cssRules[i];
+//         var pref = /:not\(\[href\*="(.*)"]\)/.exec(rule.selectorText)[1]
+//         if(newfiltertxt.startsWith(pref)) {
+//             prefix = pref;
+//             break;
+//         }
+//         css.deleteRule(i); // have shortened query, delete
+//     }
+// 
+//     if(prefix == newfiltertxt) {
+//         filtertxt = newfiltertxt;
+//         return;
+//     }
+// 
+//     if(prefix == "") {
+//         //keepselector = `a.tab[href*="${newfiltertxt}"]`;
+         selector  = `a.tab:not([href*="${newfiltertxt}"])`;
+         selector2 = `div.group:not([data-urls*="${newfiltertxt}"])`;
+//     }
+//     else {
+//         keepselector = `a.tab[href*="${newfiltertxt}"]`;
+//         selector  = `a.tab[href*="${prefix}"]:not([href*="${newfiltertxt}"])`;
+//         selector2 = `div.group[data-urls*="${prefix}"]:not([data-urls*="${newfiltertxt}"])`;
+//     }
+// 
+// //    var hideGroups = new Set();
+// //    document.querySelectorAll(".group").forEach(
+// //        x => window.getComputedStyle(x).display == "block" &&
+// //             ! x.querySelector(keepselector) ? hideGroups.add(x.id) : null)
+// //
+// //    for(var hide of hideGroups) {
+// //        selector = selector + `, #\\3${hide.substring(0,1)} ${hide.substring(1,)}`
+// //    }
+// 
+//     css.insertRule(`${selector}, ${selector2} {display:none}`, css.cssRules.length);
+    node.innerHTML= `${selector}, ${selector2} {display:none}`
 
     //node.innerHTML = `a.tab:not([href*="${x.target.value}"]) {display:none} `;
     // TODO someday when :has works, also hide the empty groups
     //
-    filtertxt = newfiltertxt;
+//    filtertxt = newfiltertxt;
 }
 
 function doImport() {
