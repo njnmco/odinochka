@@ -1,7 +1,11 @@
 
+attachUrlListSycher()
 render()
 initOptions()
 closeOthers()
+
+
+
 
 function newWindow(data) {
   chrome.windows.create({url: data.urls}, function(w) {
@@ -13,6 +17,58 @@ function newWindow(data) {
 
 function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
+}
+
+
+function attachUrlListSycher() {
+    let groups = document.getElementById("groups");
+
+    let RSEP = "\036";
+
+    let observer = new MutationObserver((ml, obs) => {
+        let toUpdate = new Set();
+        for(let mut of ml) {
+            if(mut.target.id == "groups") {
+                mut.addedNodes.forEach(x => toUpdate.add(x));
+                mut.removedNodes.forEach(x => toUpdate.delete(x));
+            } else if (mut.target.className == "group") {
+
+                //console.log({mut:mut})
+                let bf = mut.target.getAttribute("data-urls")
+                mut.removedNodes.forEach(x =>
+                    mut.target.setAttribute("data-urls",
+                        mut.target.getAttribute("data-urls").replace(RSEP + x.href + RSEP, RSEP)
+                    )
+                );
+                mut.addedNodes.forEach(x =>
+                    mut.target.setAttribute("data-urls",
+                        mut.target.getAttribute("data-urls") + RSEP + x.href + RSEP
+                    )
+                )
+                let af = mut.target.getAttribute("data-urls")
+                //console.log({bf:bf, mut:mut, af:af})
+            }
+        }
+                //console.log(ml)
+
+
+        for(let grp of toUpdate) {
+            grp.setAttribute("data-urls",
+                RSEP + Array.from(grp.getElementsByTagName("A")).map(x=>x.href).join(RSEP) + RSEP
+            )
+        }
+
+
+
+    });
+
+
+
+    observer.observe(groups, {childList: true, subtree:true});
+
+
+
+
 }
 
 function debounce(func, wait, immediate) {
