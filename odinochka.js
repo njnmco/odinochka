@@ -26,14 +26,22 @@ function attachUrlListSycher() {
     let RSEP = "\036";
 
     let observer = new MutationObserver((ml, obs) => {
-        let toUpdate = new Set();
+        let toSkip = new Set();
         for(let mut of ml) {
             if(mut.target.id == "groups") {
-                mut.addedNodes.forEach(x => toUpdate.add(x));
-                mut.removedNodes.forEach(x => toUpdate.delete(x));
-            } else if (mut.target.className == "group") {
+              mut.removedNodes.forEach(x => toSkip.add(x))
+            }
+        }
 
-                //console.log({mut:mut})
+        for(let mut of ml) {
+            if(mut.target.id == "groups") {
+                for(let grp of mut.addedNodes) {
+                    grp.setAttribute("data-urls",
+                        RSEP + Array.from(grp.getElementsByTagName("A")).map(x=>x.href).join(RSEP) + RSEP
+                    )
+                }
+            } else if (mut.target.className == "group" && !toSkip.has(mut.target)) {
+
                 let bf = mut.target.getAttribute("data-urls")
                 mut.removedNodes.forEach(x =>
                         bf = bf.replace(RSEP + x.href + RSEP, RSEP)
@@ -47,23 +55,9 @@ function attachUrlListSycher() {
         }
                 //console.log(ml)
 
-
-        for(let grp of toUpdate) {
-            grp.setAttribute("data-urls",
-                RSEP + Array.from(grp.getElementsByTagName("A")).map(x=>x.href).join(RSEP) + RSEP
-            )
-        }
-
-
-
     });
 
-
-
     observer.observe(groups, {childList: true, subtree:true});
-
-
-
 
 }
 
@@ -423,7 +417,7 @@ function renderHeader(data, header=null) {
     return header;
 }
 
-function renderTab(tab, a = null) {
+function renderTab(tab,  a = null) {
     a = a || document.createElement("a");
     a.innerText = tab.title;
     a.href = tab.url;
@@ -443,11 +437,8 @@ function renderGroup(data, ddiv=null) {
     ddiv.innerHTML = '';
     ddiv.className = 'group';
 
-    ddiv.appendChild(renderHeader(data));
+    ddiv.append(renderHeader(data), ... data.tabs.map(x => renderTab(x)));
 
-    for(let tab of data.tabs) {
-        ddiv.appendChild(renderTab(tab));
-    }
     return ddiv;
 }
 
@@ -479,11 +470,14 @@ function render() {
 function update(data) {
     let groupdiv = document.getElementById("groups");
     let child = groupdiv.children.length ? groupdiv.children[0] : null;
+    //console.log({data:data, child:child, groupdiv:groupdiv})
 
-    if(data.ts == groupdiv.children[0].id) {
-        renderGroup(data, child)
+
+    if(child && data.ts == child.id) {
+        groupdiv.replaceChild(renderGroup(data), child);
     }
     else {
+        // if child is null, then append
         groupdiv.insertBefore(renderGroup(data), child);
     }
 
@@ -494,7 +488,7 @@ function update(data) {
            node.remove()
        }
        else {
-           renderGroup(data.update[i], node);
+           groupdiv.replaceChild(renderGroup(data.update[i]), node);
        }
     }
 
@@ -588,9 +582,14 @@ function drop(event) {
                     tdata.tabs = tdata.tabs.concat(sdata.tabs);
                     sdata.tabs = []
                     callback = function() {
-                        while(src.node.nextSibling) {
-                            tgt.parentNode.appendChild(src.node.nextSibling);
+                        let toAppend = [];
+                        let snode = src.node;
+                        while(snode.nextSibling) {
+                            toAppend.push(snode.nextSibling);
+                            snode = snode.nextSibling;
                         }
+                        src.parentNode.innerHTML = ''; //append below triggers N mutationEvents on src, but one on tgt
+                        tgt.parentNode.append(...toAppend);
                     }
                 } else {
                     tdata.tabs.splice(tgt.index, 0, sdata.tabs[src.index]);
