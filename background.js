@@ -18,11 +18,6 @@ chrome.runtime.onInstalled.addListener(function(){
 	});
 
 	chrome.contextMenus.create({
-		  id: "odinochka_save_tab",
-		  title: "save tab",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
 		  id: "odinochka_save_selected",
 		  title: "save selected",
 		  contexts: ["browser_action"],
@@ -36,6 +31,13 @@ chrome.runtime.onInstalled.addListener(function(){
 		  id: "odinochka_save_all",
 		  title: "save all",
 		  contexts: ["browser_action"],
+	});
+
+    // On page
+	chrome.contextMenus.create({
+		  id: "odinochka_save_link",
+		  title: "save link",
+		  contexts: ["link"],
 	});
 
     // Let us open our database
@@ -221,11 +223,11 @@ chrome.storage.onChanged.addListener(function(changes, areaName) {
 chrome.browserAction.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
 
 // Handle context menu clicks
-chrome.contextMenus.onClicked.addListener((details, tab) => command_handler(details.menuItemId, true));
+chrome.contextMenus.onClicked.addListener((details, tab) => command_handler(details.menuItemId, true, details));
 
 chrome.commands.onCommand.addListener(command_handler);
 
-function command_handler(command, showOnSingleTab=false){
+function command_handler(command, showOnSingleTab=false, details=null){
     if (command == "odinochka_show") {
        showOdinochka()
     }
@@ -256,6 +258,9 @@ function command_handler(command, showOnSingleTab=false){
                 w => chrome.tabs.query({windowId: w.id}, saveTabs)
             )
         )
+    }
+    if (command == "odinochka_save_link") {
+        saveTabs([{title: details.linkUrl, url:details.linkUrl, favicon:"", pinned:false}], false, false)
     }
 }
 
