@@ -2,7 +2,8 @@
     "name": "odinochka",
     "version": "1.0.0",
     "description": "Open source tab vault",
-    "permissions": ["alarms", "contextMenus", "tabs", "unlimitedStorage", "storage"],
+    "permissions": ["alarms", "contextMenus", "tabs", "unlimitedStorage", "storage",
+                    "https://www.youtube.com/"],
     "background": {
       "scripts": ["background.js"],
       "persistent": false
