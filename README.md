@@ -32,6 +32,7 @@ So I wrote my own.
   - [x] UI page
     - [x] list tabs
         - [x] restore tab
+          - [x] pop out youtube mini player
         - [x] delete tab
         - [x] favicons
         - [x] drag and drop
