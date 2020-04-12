@@ -322,7 +322,7 @@ function tabclick(event) {
         ytdiv.innerHTML = `<iframe width="560" height="315" src=https://www.youtube.com/embed/${ytVidCode}
             frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen></iframe><a>x</a>`
-        ytdiv.getElementsByTagName("a")[0].onclick = deleteytvid
+        ytdiv.getElementsByTagName("a")[0].onclick = function() { ytdiv.innerHTML = ''; return false; }
         return false;
     }
 
@@ -331,11 +331,6 @@ function tabclick(event) {
     }
 
     chrome.tabs.create({url:me.href, pinned:me.target == "_pinned"}, t => deleteTabFromGroup(ts, i, me));
-    return false;
-}
-
-function deleteytvid() {
-    document.getElementById("ytdiv").innerHTML='';
     return false;
 }
 
