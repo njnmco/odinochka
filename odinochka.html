@@ -46,6 +46,11 @@
       text-decoration: none;
     }
 
+    a.tab[href*="youtube.com/watch?v="]:hover::after {
+      content: "\00a0\00a0\00a0\2198";
+      text-decoration: none;
+    }
+
     fieldset {
         float:left;
         border-style: dashed;
@@ -58,6 +63,13 @@
         display: flex;
         flex-direction: column;
         min-height: calc(100vh - 164px);
+    }
+
+    #ytdiv {
+        position:fixed;
+        bottom:0;
+        right:0;
+
     }
 
     </style>
@@ -168,6 +180,8 @@
 
         <a href="https://github.com/sponsors/nfultz">Sponsor</a>
         </p>
+
+        <div id=ytdiv> </div>
     </footer>
     <script src="odinochka.js"></script>
   </body>

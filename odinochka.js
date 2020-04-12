@@ -315,11 +315,27 @@ function tabclick(event) {
         return false;
     }
 
+    // Youtube popdown
+    if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
+        var ytdiv = document.getElementById("ytdiv");
+        ytVidCode = me.href.replace(/^.*v=/, '').replace(/&.*$/, '')
+        ytdiv.innerHTML = `<iframe width="560" height="315" src=https://www.youtube.com/embed/${ytVidCode}
+            frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe><a>x</a>`
+        ytdiv.getElementsByTagName("a")[0].onclick = deleteytvid
+        return false;
+    }
+
     if (event.shiftKey || event.ctrlKey || locked || (restore  == "keep")) {
         return true;
     }
 
     chrome.tabs.create({url:me.href, pinned:me.target == "_pinned"}, t => deleteTabFromGroup(ts, i, me));
+    return false;
+}
+
+function deleteytvid() {
+    document.getElementById("ytdiv").innerHTML='';
     return false;
 }
 
