@@ -161,10 +161,12 @@ function groupclick(event) {
     let shiftclick = event.shiftKey
   
     if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
+        var code = me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"|style="[^"]*"/g, '')
+
         chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
                                 encodeURIComponent(
                                     '<html><style>a{display:block}</style>' +
-                                    me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"|style="[^"]*"/g, '') +
+                                    `<title>${me.innerText}</title>` + code +
                                     '</html>'
                                 )  })
 
