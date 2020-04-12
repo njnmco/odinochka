@@ -1,6 +1,7 @@
 
 chrome.runtime.onInstalled.addListener(function(){
 	// Context Menus on button
+    // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
 	chrome.contextMenus.create({
 		  id: "odinochka_show",
 		  title: "show",
@@ -14,12 +15,6 @@ chrome.runtime.onInstalled.addListener(function(){
 	chrome.contextMenus.create({
           id: "odinochka_sep",
           type: "separator",
-		  contexts: ["browser_action"],
-	});
-
-	chrome.contextMenus.create({
-		  id: "odinochka_save_selected",
-		  title: "save selected",
 		  contexts: ["browser_action"],
 	});
 	chrome.contextMenus.create({
