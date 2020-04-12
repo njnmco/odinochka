@@ -321,10 +321,14 @@ function tabclick(event) {
     if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
         var ytdiv = document.getElementById("ytdiv");
         ytVidCode = me.href.replace(/^.*v=/, '').replace(/&.*$/, '')
-        ytdiv.innerHTML = `<iframe width="560" height="315" src=https://www.youtube.com/embed/${ytVidCode}
+        ytdiv.innerHTML = `<a>X</a><iframe width="100%" height="100%" src=https://www.youtube.com/embed/${ytVidCode}
             frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe><a>X</a>`
-        ytdiv.getElementsByTagName("a")[0].onclick = function() { ytdiv.innerHTML = ''; return false; }
+            allowfullscreen></iframe>`
+        ytdiv.getElementsByTagName("a")[0].onclick = function() {
+            ytdiv.innerHTML = '';
+            ytdiv.parentNode.setAttribute('style', ''); //resets the manual sizing
+            return false;
+        }
         return false;
     }
 

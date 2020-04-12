@@ -64,10 +64,24 @@
         flex-direction: column;
     }
 
-    #ytdiv {
+    #ytouter {
         position:fixed;
         bottom:0;
         right:0;
+        resize:both;
+        transform: rotate(-180deg);
+        overflow:hidden;
+    }
+
+    #ytdiv {
+        transform: rotate(-180deg);
+        margin: 0;
+        width:100%;
+        height:100%;
+    }
+
+    #ytdiv a {
+        float: right;
     }
 
     </style>
@@ -179,7 +193,7 @@
         <a href="https://github.com/sponsors/nfultz">Sponsor</a>
         </p>
 
-        <div id=ytdiv> </div>
+        <div id=ytouter><div id=ytdiv></div></div>
     </footer>
     <script src="odinochka.js"></script>
   </body>
