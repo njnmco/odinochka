@@ -33,6 +33,7 @@ So I wrote my own.
     - [x] list tabs
         - [x] restore tab
           - [x] pop out youtube mini player
+            - [x] resizing preserves aspect ratio
         - [x] delete tab
         - [x] favicons
         - [x] drag and drop
