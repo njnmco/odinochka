@@ -464,6 +464,18 @@ function divclickhandler(event) {
     if (type == 'dblclick' && target.tagName == 'HEADER')
         return groupclick(event);
 
+    if (type == 'dragstart') 
+        event.target.id = 'drag'
+
+    if (type == 'dragover')
+        event.preventDefault()
+
+    if (type == 'dragend')
+        event.target.id = ''
+
+    if (type == 'drop')
+        return drop(event)
+
     return true;
 }
 
@@ -476,7 +488,8 @@ function renderHeader(data, header=null) {
     //header.ondblclick = groupclick;
     header.onblur = groupblur;
     header.contentEditable = false;
-    addDragDrop(header);
+    header.draggable = true;
+    header.setAttribute('tabindex', '0');
     return header;
 }
 
@@ -490,7 +503,7 @@ function renderTab(tab,  a = null) {
     a.className = "tab";
     //a.onclick = tabclick;
     a.target = tab.pinned ? "_pinned" :  "_blank";
-    addDragDrop(a);
+    a.draggable = true;
     return a;
 }
 
@@ -510,8 +523,8 @@ function render() {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
-    groupdiv.onclick = divclickhandler ;
-    groupdiv.ondblclick = divclickhandler ;
+    for(var ev of ['click', 'dblclick', 'dragstart', 'dragend', 'dragover', 'drop'])
+        groupdiv['on'+ev]= divclickhandler
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
@@ -574,26 +587,6 @@ chrome.runtime.onMessage.addListener(
       })
 
 // Drag and Drop
-
-function addDragDrop(a) {
-    a.draggable = true;
-    a.ondragstart = dragstart
-    a.ondragend = dragend
-    a.ondragover = dragover
-    a.ondrop = drop
-}
-
-function dragstart(event) {
-    event.target.id = "drag";
-}
-
-function dragover(event) {
-    event.preventDefault()
-}
-
-function dragend(event) {
-    event.target.id = ""
-}
 
 function ddextract(node) {
     return {

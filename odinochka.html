@@ -33,7 +33,7 @@
         display: inline-block;
     }
 
-    .tab:hover::before {
+    .tab:hover::before, .tab:focus::before {
       content: "(x)";
       margin-left:-4.5em;
       padding-right:3.25em;
@@ -41,12 +41,14 @@
         /*border: dashed 1px;*/
     }
 
-    header.tab:hover::after {
+    header.tab:hover::after, header.tab:focus::after {
       content: "\00a0\00a0\00a0\2197";
       text-decoration: none;
     }
 
-    a.tab[href*="youtube.com/watch?v="]:hover::after {
+    a.tab[href*="youtube.com/watch?v="]:hover::after,
+    a.tab[href*="youtube.com/watch?v="]:focus::after
+    {
       content: "\00a0\00a0\00a0\2198";
       text-decoration: none;
     }
