@@ -451,6 +451,21 @@ function fmtDate (ts) {
     )
 }
 
+function divclickhandler(event) {
+    var target = event.target;
+    var type = event.type;
+
+    if (target.attributes.class.value != 'tab')
+        return true;
+    
+    if (type == 'click' && target.tagName == 'A')
+        return tabclick(event);
+
+    if (type == 'dblclick' && target.tagName == 'HEADER')
+        return groupclick(event);
+
+    return true;
+}
 
 function renderHeader(data, header=null) {
     header = header || document.createElement("header");
@@ -458,7 +473,7 @@ function renderHeader(data, header=null) {
     header.innerHTML = `${data.name} @ ${fmtDate(data.ts)}`;
 
     header.className = "tab";
-    header.ondblclick = groupclick;
+    //header.ondblclick = groupclick;
     header.onblur = groupblur;
     header.contentEditable = false;
     addDragDrop(header);
@@ -473,7 +488,7 @@ function renderTab(tab,  a = null) {
         a.style = `--bg-favicon: url("${tab.favicon}")`;
     }
     a.className = "tab";
-    a.onclick = tabclick;
+    //a.onclick = tabclick;
     a.target = tab.pinned ? "_pinned" :  "_blank";
     addDragDrop(a);
     return a;
@@ -495,6 +510,8 @@ function render() {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
+    groupdiv.onclick = divclickhandler ;
+    groupdiv.ondblclick = divclickhandler ;
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
