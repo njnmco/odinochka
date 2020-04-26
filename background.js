@@ -73,11 +73,13 @@ function dedupTabs(data) {
 
 
 
-function fixGreatSuspender(tab) {
+function cleanTabData(tab) {
     if(tab.url.startsWith("chrome-extension") &&
        tab.url.indexOf("/suspended.html#") > -1) {
             tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
     }
+    tab.url = tab.url.replace(/([?&])utm_[^=]*=[^&]*/g, "$1");
+    if(tab.favIconUrl.startsWith("chrome-extension")) delete tab.favIconUrl;
     return tab;
 }
 
@@ -110,7 +112,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
             for(let tab of tabs.slice().reverse()){
                 if(tab.url == "chrome://newtab/") continue;
-                tab = fixGreatSuspender(tab);
+                tab = cleanTabData(tab);
                 data.tabs.unshift({
                   title: tab.title,
                   url:tab.url,

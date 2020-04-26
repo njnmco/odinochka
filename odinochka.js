@@ -446,7 +446,7 @@ function fmtDate (ts) {
 
 function divclickhandler(event) {
     var target = event.target;
-    if (target.attributes.class.value != 'tab')
+    if (!target || target.className != 'tab')
         return true;
 
     switch(event.type) {
@@ -455,13 +455,13 @@ function divclickhandler(event) {
         case 'dblclick':
             return target.tagName != 'HEADER' || groupclick(event);
         case 'dragstart':
-            event.target.id = 'drag'
+            target.id = 'drag'
             return true;
         case 'dragover':
             event.preventDefault()
             return true;
         case 'dragend':
-            event.target.id = ''
+            target.id = ''
             return true;
         case 'drop':
             return drop(event);
