@@ -164,7 +164,7 @@ function groupclick(event) {
         chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
                                 encodeURIComponent(
                                     '<html><style>a{display:block}</style>' +
-                                    `<title>${me.innerText}</title>` + code +
+                                    `<title>${me.textContent}</title>` + code +
                                     '</html>'
                                 )  })
 
@@ -174,7 +174,7 @@ function groupclick(event) {
     if( event.clientX > event.target.offsetLeft && !shiftclick) {
         // if inside box, make editable
         if(me.contentEditable == "false"){
-              me.oldText = me.innerText;
+              me.oldText = me.textContent;
               me.contentEditable = "true";
               me.focus();
         }
@@ -249,7 +249,7 @@ function groupblur(event) {
 
     me.contentEditable = "false"
 
-    var newtxt = trimmer(me.innerText);
+    var newtxt = trimmer(me.textContent);
     var oldtxt = trimmer(me.oldText);
 
     if(newtxt == oldtxt) return;
@@ -307,7 +307,7 @@ function tabclick(event) {
     let ts = parseInt(me.parentNode.id);
     let isX = event.clientX < me.offsetLeft; // if outside box (eg x'd) don't follow link
     let restore = document.forms["options"].elements["restore"].value;
-    let locked = me.parentNode.children[0].innerText.indexOf("lock") > 0;
+    let locked = me.parentNode.children[0].textContent.indexOf("lock") > 0;
     let i = Array.from(me.parentNode.children).indexOf(me) - 1;
 
     if (isX) {
@@ -370,7 +370,7 @@ function makeyt(me) {
 
 function updateCount(store) {
     store.index("urls").count().onsuccess = function(e) {
-        document.getElementById("size").innerText = e.target.result + " tabs";
+        document.getElementById("size").textContent = e.target.result + " tabs";
     }
 }
 
@@ -382,7 +382,7 @@ function initOptions() {
         group: "smart",
         pinned: "skip",
         favicon: "show",
-        order: 'asc',
+        order: 'desc',
         advanced: ""
     }
 
@@ -397,7 +397,7 @@ function initOptions() {
             )
         }
         document.getElementById('faviconstyle').media = o.favicon == 'hide' ? "not all" : 'all'; //set initial state
-        document.getElementById('groups').style['flex-direction'] = o.order == 'asc' ? 'column-reverse' : 'column';
+        document.getElementById('groups').style.setProperty('flex-direction', o.order == 'asc' ? 'column-reverse' : 'column');
     })
 
     document.forms["options"].onchange = function (e) {
@@ -474,7 +474,7 @@ function divclickhandler(event) {
 function renderHeader(data, header=null) {
     header = header || document.createElement("header");
 
-    header.innerText = `${data.name} @ ${fmtDate(data.ts)}`;
+    header.textContent = `${data.name} @ ${fmtDate(data.ts)}`;
 
     header.className = "tab";
     header.contentEditable = false;
@@ -486,7 +486,7 @@ function renderHeader(data, header=null) {
 
 function renderTab(tab,  a = null) {
     a = a || document.createElement("a");
-    a.innerText = tab.title;
+    a.textContent = tab.title;
     a.href = tab.url;
     if(tab.favicon){
         a.style.setProperty('--bg-favicon', `url("${tab.favicon}")`);
@@ -527,8 +527,8 @@ function render() {
         store.openCursor(null, "prev").onsuccess = function(event) {
             let cursor = event.target.result;
             if (cursor) {
-                groupdiv.appendChild(renderGroup(cursor.value));
                 cursor.continue();
+                groupdiv.appendChild(renderGroup(cursor.value));
             }
         };
     };
