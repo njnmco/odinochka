@@ -50,10 +50,8 @@ function attachUrlListSycher() {
                         bf += RSEP + x.href + RSEP
                 )
                 mut.target.setAttribute("data-urls", bf)
-                //console.log({bf:bf, mut:mut, af:af})
             }
         }
-                //console.log(ml)
 
     });
 
@@ -348,7 +346,6 @@ function makeyt(me) {
        ytobserver = new MutationObserver((ml, obs) => {
            var nw = Number.parseFloat(ytouter.style.width);
            var nh = Number.parseFloat(ytouter.style.height);
-           //console.log([nw, nh])
            var calc = Math.round(nw * ar);
            if (nh != calc) {
                ytouter.style.setProperty("height", `${calc}px`);
@@ -439,57 +436,51 @@ function closeOthers() {
 }
 
 function fmtDate (ts) {
+    let fmt = {weekday:'short', month: 'short', day: 'numeric',  hour:'numeric', minute:'numeric'};
     let d = new Date();
     let thisYear = d.getYear()
     d.setTime(ts);
-    return d.toLocaleString(
-        undefined, //undefined uses browser default
-        Object.assign(
-            {weekday:'short', month: 'short', day: 'numeric',  hour:'numeric', minute:'numeric'},
-            d.getYear() == thisYear ? {} : {year:"numeric"}
-        )
-    )
+    if(d.getYear() == thisYear) fmt.year="numeric";
+    return d.toLocaleString( undefined, fmt) //undefined uses browser default
 }
 
 function divclickhandler(event) {
     var target = event.target;
-    var type = event.type;
-
     if (target.attributes.class.value != 'tab')
         return true;
-    
-    if (type == 'click' && target.tagName == 'A')
-        return tabclick(event);
 
-    if (type == 'dblclick' && target.tagName == 'HEADER')
-        return groupclick(event);
+    switch(event.type) {
+        case 'click':
+            return target.tagName != 'A' || tabclick(event);
+        case 'dblclick':
+            return target.tagName != 'HEADER' || groupclick(event);
+        case 'dragstart':
+            event.target.id = 'drag'
+            return true;
+        case 'dragover':
+            event.preventDefault()
+            return true;
+        case 'dragend':
+            event.target.id = ''
+            return true;
+        case 'drop':
+            return drop(event);
+    }
 
-    if (type == 'dragstart') 
-        event.target.id = 'drag'
-
-    if (type == 'dragover')
-        event.preventDefault()
-
-    if (type == 'dragend')
-        event.target.id = ''
-
-    if (type == 'drop')
-        return drop(event)
-
+    console.log(event); // should be impossible
     return true;
 }
 
 function renderHeader(data, header=null) {
     header = header || document.createElement("header");
 
-    header.innerHTML = `${data.name} @ ${fmtDate(data.ts)}`;
+    header.innerText = `${data.name} @ ${fmtDate(data.ts)}`;
 
     header.className = "tab";
-    //header.ondblclick = groupclick;
-    header.onblur = groupblur;
     header.contentEditable = false;
     header.draggable = true;
     header.setAttribute('tabindex', '0');
+    header.onblur = groupblur; // can't be on divhandler bc header inside div, so blur not fired.
     return header;
 }
 
@@ -498,10 +489,9 @@ function renderTab(tab,  a = null) {
     a.innerText = tab.title;
     a.href = tab.url;
     if(tab.favicon){
-        a.style = `--bg-favicon: url("${tab.favicon}")`;
+        a.style.setProperty('--bg-favicon', `url("${tab.favicon}")`);
     }
     a.className = "tab";
-    //a.onclick = tabclick;
     a.target = tab.pinned ? "_pinned" :  "_blank";
     a.draggable = true;
     return a;
@@ -548,8 +538,6 @@ function render() {
 function update(data) {
     let groupdiv = document.getElementById("groups");
     let child = groupdiv.children.length ? groupdiv.children[0] : null;
-    //console.log({data:data, child:child, groupdiv:groupdiv})
-
 
     if(child && data.ts == child.id) {
         groupdiv.replaceChild(renderGroup(data), child);
@@ -611,9 +599,6 @@ function drop(event) {
     let moveNode = function() {
         tgt.parentNode.insertBefore(src.node, tgt.node.nextSibling);
     }
-
-    //console.log({src:src, tgt:tgt, srcId:srcId, tgtId:tgtId, srcIndex:srcIndex, tgtIndex:tgtIndex})
-
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
