@@ -396,8 +396,8 @@ function initOptions() {
                 e => e.checked = e.value == o[i]
             )
         }
-        document.getElementById('faviconstyle').media = o.favicon == 'hide' ? "not all" : 'all'; //set initial state
-        document.getElementById('groups').style.setProperty('flex-direction', o.order == 'asc' ? 'column-reverse' : 'column');
+        if (o.favicon == 'show') document.getElementById('faviconstyle').media = 'all'; //set initial state
+        if (o.order == 'asc') document.getElementById('orderstyle').media = 'all'; //set initial state
     })
 
     document.forms["options"].onchange = function (e) {
@@ -407,22 +407,17 @@ function initOptions() {
     }
 
 
-    document.getElementsByName("filter")[0].oninput = debounce(cssfilter, 50);
+    document.getElementById("filter").oninput = debounce(cssfilter, 50);
 
-    for (e of document.getElementsByName("favicon")) {
-        e.onchange = function(e) {document.getElementById('faviconstyle').media = this.value == 'hide' ? 'not all' : 'all'}
-    }
-
-    for (e of document.getElementsByName("order")) {
-        e.onchange = function(e) {document.getElementById('groups').style['flex-direction'] = this.value == 'asc' ? 'column-reverse' : 'column'}
-    }
+    handle_sty = function(e){ document.getElementById(this.name + 'style').media = this.dataset.media};
+    document.querySelectorAll("[name=favicon], [name=order]").forEach(e => e.onchange = handle_sty);
 
     // Import / Export feature
-    document.getElementsByName("importfile")[0].onchange = function() {
+    document.getElementById("importfile").onchange = function() {
             this.setAttribute('value', this.value);
     };
-    document.getElementsByName("import")[0].onclick = doImport;
-    document.getElementsByName("export")[0].onclick = doExport;
+    document.getElementById("import").onclick = doImport;
+    document.getElementById("export").onclick = doExport;
 
 }
 
