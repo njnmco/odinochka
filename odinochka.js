@@ -454,6 +454,8 @@ function divclickhandler(event) {
             return target.tagName != 'A' || tabclick(event);
         case 'dblclick':
             return target.tagName != 'HEADER' || groupclick(event);
+        case 'blur':
+            return target.tagName != 'HEADER' || groupblur(event);
         case 'dragstart':
             target.id = 'drag'
             return true;
@@ -480,7 +482,6 @@ function renderHeader(data, header=null) {
     header.contentEditable = false;
     header.draggable = true;
     header.setAttribute('tabindex', '0');
-    header.onblur = groupblur; // can't be on divhandler bc header inside div, so blur not fired.
     return header;
 }
 
@@ -515,6 +516,7 @@ function render() {
     groupdiv.innerHTML = '';
     for(var ev of ['click', 'dblclick', 'dragstart', 'dragend', 'dragover', 'drop'])
         groupdiv['on'+ev]= divclickhandler
+    groupdiv.addEventListener('blur', divclickhandler, true); // onblur won't trigger, but can capture?
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
