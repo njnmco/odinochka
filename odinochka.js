@@ -383,6 +383,7 @@ function initOptions() {
         pinned: "skip",
         favicon: "show",
         order: 'desc',
+        grabfocus: 'always',
         advanced: ""
     }
 

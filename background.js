@@ -205,7 +205,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 // options
 var options = {}
 chrome.storage.local.get(
-    {dupe: "keep", pinned: "skip", advanced: ""},
+    {dupe: "keep", pinned: "skip", advanced: "", grabfocus: "always"},
     o => Object.assign(options, o) && doAdvanced(o.advanced)
 )
 
@@ -264,12 +264,22 @@ function command_handler(command, showOnSingleTab=false, details=null){
 function showOdinochka(callback = null, data={}) {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      t => t.length ? chrome.tabs.sendMessage(t[0].id, data,
-                         () => chrome.tabs.move(t[0].id,
-                                                {windowId:chrome.windows.WINDOW_ID_CURRENT, index:-1},
-                            () => chrome.tabs.update(t[0].id, {active:true},  callback)
-                         ))
-                    : chrome.tabs.create({ url: "odinochka.html" }, callback)
+      t => {
+          if(!t.length) return( chrome.tabs.create({ url: "odinochka.html" }, callback) )
+          var otab = t[0];
+
+          var dontgrab = options.grabfocus == 'never' ||  (otab.pinned && options.grabfocus == 'unpinned');
+          //console.log({'dontgrab':dontgrab, 'opt':options.grabfocus, otab: otab})
+
+          // if not grabbing focus, fire callback directly
+          var cb = dontgrab ? callback : () => chrome.tabs.move(
+              otab.id,
+              {windowId:chrome.windows.WINDOW_ID_CURRENT, index:-1},
+              () => chrome.tabs.update(otab.id, {active:true},  callback)
+          )
+
+          chrome.tabs.sendMessage(otab.id, data, cb);
+      }
     )
     
 }
