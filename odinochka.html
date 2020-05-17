@@ -104,6 +104,16 @@
     .toggle:checked + .lbl-toggle + form.options {
       display: block;
     }
+
+    .restoredup {
+        display:none
+    }
+    .restoreremove:checked + label + .restoredup {
+        display: block ;
+        float:none;
+    }
+
+
     </style>
     <style id=cssfilterstyle>
     </style>
@@ -155,13 +165,13 @@
         </fieldset>
         <fieldset>
             <legend>On restore</legend>
-            <input type=radio name=restore value=remove><label>Remove from list</label><br/>
+            <input type=radio class=restoreremove name=restore value=remove><label>Remove from list</label>
+            <fieldset class=restoredup>
+                <legend>On restore already open</legend>
+                <input type=radio name=restoredup value=grab><label>Move to current window</label><br/>
+                <input type=radio name=restoredup value=new><label>Open new copy</label><br/>
+            </fieldset><br/>
             <input type=radio name=restore value=keep><label>Keep</label><br/>
-        </fieldset>
-        <fieldset>
-            <legend>On restore already open</legend>
-            <input type=radio name=restoredup value=grab><label>Move to current window</label><br/>
-            <input type=radio name=restoredup value=new><label>Open new copy</label><br/>
         </fieldset>
         <fieldset>
             <legend>Restore groups to</legend>
