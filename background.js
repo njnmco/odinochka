@@ -79,7 +79,7 @@ function cleanTabData(tab) {
             tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
     }
     tab.url = tab.url.replace(/([?&])utm_[^=]*=[^&]*/g, "$1");
-    if(tab.favIconUrl.startsWith("chrome-extension")) delete tab.favIconUrl;
+    if(tab.faviconUrl && tab.favIconUrl.startsWith("chrome-extension")) delete tab.favIconUrl;
     return tab;
 }
 
