@@ -307,6 +307,7 @@ function tabclick(event) {
     let ts = parseInt(me.parentNode.id);
     let isX = event.clientX < me.offsetLeft; // if outside box (eg x'd) don't follow link
     let restore = document.forms["options"].elements["restore"].value;
+    let restoredup = document.forms["options"].elements["restoredup"].value;
     let locked = me.parentNode.children[0].textContent.indexOf("lock") > 0;
     let i = Array.from(me.parentNode.children).indexOf(me) - 1;
 
@@ -325,7 +326,21 @@ function tabclick(event) {
         return true;
     }
 
-    chrome.tabs.create({url:me.href, pinned:me.target == "_pinned"}, t => deleteTabFromGroup(ts, i, me));
+    var creator = x =>
+        chrome.tabs.create({url:me.href, pinned:me.target == "_pinned"}, t => deleteTabFromGroup(ts, i, me));
+
+    if (restoredup != "grab") {
+      creator()
+      return false;
+    }
+
+    chrome.tabs.query({url:me.href}, t => ! t.length ? creator :
+        chrome.tabs.getCurrent(w =>
+            chrome.tabs.move(t[0].id, {windowId: w.windowId, index:w.index + 1}, _ =>
+                chrome.tabs.update(t[0].id, {active:true}, _ => deleteTabFromGroup(ts, i, me))
+        )))
+
+
     return false;
 }
 
@@ -379,6 +394,7 @@ function initOptions() {
     let DEFAULT_OPTIONS = {
         dupe: "keep",
         restore: "remove",
+        restoredup: "new",
         group: "smart",
         pinned: "skip",
         favicon: "show",
