@@ -436,7 +436,7 @@ function fmtDate (ts) {
     let d = new Date();
     let thisYear = d.getYear()
     d.setTime(ts);
-    if(d.getYear() == thisYear) fmt.year="numeric";
+    if(d.getYear() != thisYear) fmt.year="numeric";
     return d.toLocaleString( undefined, fmt) //undefined uses browser default
 }
 
