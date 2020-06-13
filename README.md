@@ -78,6 +78,13 @@ jq '[{ts:1, name:"restore", tabs:[.[] | {title:.title, url:.url, favicon:"", pin
 
 Chrome can mysteriously delete data whenever it crashes, so I recommend regularly backing up your tabs using the export features.
 
+### Restoring from pinboard.in
+
+1. Download all links as json at https://api.pinboard.in/v1/posts/all?format=json
+2. Convert using
+  `jq '[{ts:3, name:"pinboard", tabs:[   .[] | {title:.description, url:.href, favicon:"", pinned:false} ], urls:[.[].href] }]' downloads/pinbord.json >pinboard.out`
+3. Import the converted json
+
 ### Automated cloud backup
 
 To enable automated cloud backup, add the following to the "Advanced options":
