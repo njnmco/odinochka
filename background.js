@@ -86,6 +86,8 @@ function cleanTabData(tab) {
 
 function saveTabs(tabs, newGroup=true, show=true) {
 
+    let options = window.localStorage;
+
     if(newGroup && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
     }
@@ -175,7 +177,7 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
                 return recUpdate(0);
             }
-            else if(options.dupe == "reject") {
+            else {// if(options.dupe == "reject") {
 
                 dedupTabs(data);
 
@@ -203,16 +205,9 @@ function saveTabs(tabs, newGroup=true, show=true) {
 }
 
 // options
-var options = {}
-chrome.storage.local.get(
-    {dupe: "keep", pinned: "skip", advanced: "", grabfocus: "always"},
-    o => Object.assign(options, o) && doAdvanced(o.advanced)
-)
-
-chrome.storage.onChanged.addListener(function(changes, areaName) {
-    if(areaName != "local") return;
-    for(let i in changes) options[i] = changes[i].newValue;
-    doAdvanced(options.advanced);
+//chrome.storage.onChanged.addListener(function(changes, areaName) {
+window.addListener("storage", function(e) {
+    doAdvanced(e.changes.advanced);
 })
 
 
@@ -267,6 +262,7 @@ function showOdinochka(callback = null, data={}) {
       t => {
           if(!t.length) return( chrome.tabs.create({ url: "odinochka.html" }, callback) )
           var otab = t[0];
+          let options = window.localStorage;
 
           var dontgrab = options.grabfocus == 'never' ||  (otab.pinned && options.grabfocus == 'unpinned');
           //console.log({'dontgrab':dontgrab, 'opt':options.grabfocus, otab: otab})
@@ -315,15 +311,32 @@ function postTabs(url, method, alarm) {
     }
 }
  
-let alarmCallback = null;
 function doAdvanced(advanced) {
-    chrome.alarms.onAlarm.removeListener(alarmCallback);
-    alarmCallback = null;
+    chrome.alarms.clear("advanced");
     if( /I know what I'm doing/.test(advanced)) {
         let advancedOptions = JSON.parse(advanced);
         console.log(advancedOptions);
-        chrome.alarms.create("odinochka", {delayInMinutes:1, periodInMinutes: advancedOptions.interval});
-        alarmCallback = postTabs.bind(null, advancedOptions.url, advancedOptions.method);
-        chrome.alarms.onAlarm.addListener(alarmCallback);
+        chrome.alarms.create("advanced", {delayInMinutes:1, periodInMinutes: advancedOptions.interval});
     }
 }
+
+chrome.alarms.onAlarm.addListener(function(e){
+    if(e.name != "advanced") return;
+
+    let advanced = window.localStorage.advanced;
+    let advancedOptions = JSON.parse(advanced);
+    //console.log(advancedOptions);
+    alarmCallback = postTabs(advancedOptions.url, advancedOptions.method, e);
+});
+
+chrome.alarms.onAlarm.addListener(function(e){
+    if(!e.name.endsWith("_snooze")) return;
+    let groupID = parseInt(e.name);
+
+
+});
+
+
+
+
+
