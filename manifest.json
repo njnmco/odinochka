@@ -1,12 +1,10 @@
 {
     "name": "odinochka",
-    "version": "1.1.1",
+    "version": "3.0.0",
     "description": "Open source tab vault",
-    "permissions": ["alarms", "contextMenus", "tabs", "unlimitedStorage", "storage",
-                    "https://www.youtube.com/"],
+    "permissions": ["alarms", "contextMenus", "tabs", "unlimitedStorage" ],
     "background": {
-      "scripts": ["background.js"],
-      "persistent": false
+      "service_worker": "background.js"
     },
 	"commands": {
 	  "odinochka_show": {
@@ -21,6 +19,12 @@
 		},
 		"description": "Save Tab"
 	  } ,
+	  "odinochka_snooze_tab": {
+		"suggested_key": {
+		  "default": "Shift+Alt+T"
+		},
+		"description": "Snooze Tab"
+	  } ,
 	  "odinochka_save_win": {
 		"suggested_key": {
 		  "default": "Alt+O"
@@ -28,14 +32,12 @@
 		"description": "Save Window"
 	  }
 
-
 	},
-    "browser_action": { },
     "icons": {
         "16": "images/odinochka16.png",
         "32": "images/odinochka32.png",
         "48": "images/odinochka48.png",
         "128": "images/odinochka128.png"
     },
-    "manifest_version":2
+    "manifest_version":3
 }
