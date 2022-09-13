@@ -216,6 +216,22 @@ chrome.storage.onChanged.addListener(function(changes, areaName) {
 })
 
 
+// https://stackoverflow.com/a/49595052/986793
+function getData() {
+  let sKey =  {dupe: "keep", pinned: "skip", grabfocus: "always"};
+  return new Promise(function(resolve, reject) {
+    chrome.storage.local.get(sKey, function(items) {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError.message);
+        reject(chrome.runtime.lastError.message);
+      } else {
+        resolve(items);
+      }
+    });
+  });
+}
+
+
 // handle clicks to our extension icon
 chrome.browserAction.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
 
@@ -261,7 +277,8 @@ async function command_handler(command, showOnSingleTab=false, details=null){
     }
 }
 
-function showOdinochka(callback = null, data={}) {
+async function showOdinochka(callback = null, data={}) {
+	let options = await getData();
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
       t => {
