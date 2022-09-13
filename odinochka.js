@@ -1,5 +1,4 @@
 
-attachUrlListSycher()
 render()
 initOptions()
 closeOthers()
@@ -19,45 +18,6 @@ function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
 }
 
-
-function attachUrlListSycher() {
-    let groups = document.getElementById("groups");
-
-    let RSEP = "\036";
-
-    let observer = new MutationObserver((ml, obs) => {
-        let toSkip = new Set();
-        for(let mut of ml) {
-            if(mut.target.id == "groups") {
-              mut.removedNodes.forEach(x => toSkip.add(x))
-            }
-        }
-
-        for(let mut of ml) {
-            if(mut.target.id == "groups") {
-                for(let grp of mut.addedNodes) {
-                    grp.setAttribute("data-urls",
-                        RSEP + Array.from(grp.getElementsByTagName("A")).map(x=>x.href).join(RSEP) + RSEP
-                    )
-                }
-            } else if (mut.target.className == "group" && !toSkip.has(mut.target)) {
-
-                let bf = mut.target.getAttribute("data-urls")
-                mut.removedNodes.forEach(x =>
-                        bf = bf.replace(RSEP + x.href + RSEP, RSEP)
-                );
-                mut.addedNodes.forEach(x =>
-                        bf += RSEP + x.href + RSEP
-                )
-                mut.target.setAttribute("data-urls", bf)
-            }
-        }
-
-    });
-
-    observer.observe(groups, {childList: true, subtree:true});
-
-}
 
 function debounce(func, wait, immediate) {
     let timeout;
