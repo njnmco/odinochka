@@ -123,7 +123,8 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
             let alsoUpdate = {};
             let closeTabs = function(event) {
-                let cb = () => chrome.tabs.remove(tabs.map(t => t.id))
+                let ids = tabs.map(t => t.id).filter(Number);
+                let cb = ids ? () => chrome.tabs.remove(ids) : null;
                 data.update = alsoUpdate;
                 show ? showOdinochka(cb, data) : reloadOdinochka(cb, data);
             };
@@ -223,7 +224,7 @@ chrome.contextMenus.onClicked.addListener((details, tab) => command_handler(deta
 
 chrome.commands.onCommand.addListener(command_handler);
 
-function command_handler(command, showOnSingleTab=false, details=null){
+async function command_handler(command, showOnSingleTab=false, details=null){
     if (command == "odinochka_show") {
        showOdinochka()
     }
@@ -286,7 +287,7 @@ function showOdinochka(callback = null, data={}) {
 function reloadOdinochka(callback, data={}) {
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
-      t => t.length ? chrome.tabs.sendMessage(t[0].id, data, callback) : callback() //there should be only one.
+      t => t.length ? chrome.tabs.sendMessage(t[0].id, data, callback) : callback ? callback() : null  //there should be only one.
     )
 }
 
