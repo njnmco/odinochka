@@ -205,14 +205,13 @@ function saveTabs(tabs, newGroup=true, show=true) {
 // options
 var options = {}
 chrome.storage.local.get(
-    {dupe: "keep", pinned: "skip", advanced: "", grabfocus: "always"},
-    o => Object.assign(options, o) && doAdvanced(o.advanced)
+    {dupe: "keep", pinned: "skip", grabfocus: "always"},
+    o => Object.assign(options, o)
 )
 
 chrome.storage.onChanged.addListener(function(changes, areaName) {
     if(areaName != "local") return;
     for(let i in changes) options[i] = changes[i].newValue;
-    doAdvanced(options.advanced);
 })
 
 
@@ -291,39 +290,3 @@ function reloadOdinochka(callback, data={}) {
     )
 }
 
-// Automated backup to s3
-function postTabs(url, method, alarm) {
-    let result = [];
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        let db = event.target.result;
-        let tx = db.transaction('tabgroups', 'readonly');
-        let store = tx.objectStore('tabgroups');
-
-        store.openCursor(null, "prev").onsuccess = function(event) {
-            let cursor = event.target.result;
-            if (cursor) {
-                result.push(cursor.value);
-                cursor.continue();
-            }
-            else {
-                console.log({date: new Date(), numGroups: result.length});
-                var xhr = new XMLHttpRequest();
-                xhr.open(method, url, true);
-                xhr.send(JSON.stringify(result));
-            }
-        }
-    }
-}
- 
-let alarmCallback = null;
-function doAdvanced(advanced) {
-    chrome.alarms.onAlarm.removeListener(alarmCallback);
-    alarmCallback = null;
-    if( /I know what I'm doing/.test(advanced)) {
-        let advancedOptions = JSON.parse(advanced);
-        console.log(advancedOptions);
-        chrome.alarms.create("odinochka", {delayInMinutes:1, periodInMinutes: advancedOptions.interval});
-        alarmCallback = postTabs.bind(null, advancedOptions.url, advancedOptions.method);
-        chrome.alarms.onAlarm.addListener(alarmCallback);
-    }
-}

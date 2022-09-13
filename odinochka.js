@@ -384,15 +384,10 @@ function initOptions() {
         favicon: "show",
         order: 'desc',
         grabfocus: 'always',
-        advanced: ""
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
         for(let i in o) {
-            if (i == 'advanced') {
-                document.forms["options"].elements[i].value = o[i];
-                continue;
-            }
             document.forms["options"].elements[i].forEach(
                 e => e.checked = e.value == o[i]
             )
