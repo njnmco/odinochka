@@ -84,7 +84,8 @@ function cleanTabData(tab) {
 }
 
 
-function saveTabs(tabs, newGroup=true, show=true) {
+async function saveTabs(tabs, newGroup=true, show=true) {
+    let options = await getData();
 
     if(newGroup && options.pinned == "skip") {
         tabs = tabs.filter(t => !t.pinned)
@@ -203,19 +204,6 @@ function saveTabs(tabs, newGroup=true, show=true) {
 
 }
 
-// options
-var options = {}
-chrome.storage.local.get(
-    {dupe: "keep", pinned: "skip", grabfocus: "always"},
-    o => Object.assign(options, o)
-)
-
-chrome.storage.onChanged.addListener(function(changes, areaName) {
-    if(areaName != "local") return;
-    for(let i in changes) options[i] = changes[i].newValue;
-})
-
-
 // https://stackoverflow.com/a/49595052/986793
 function getData() {
   let sKey =  {dupe: "keep", pinned: "skip", grabfocus: "always"};
@@ -278,7 +266,7 @@ async function command_handler(command, showOnSingleTab=false, details=null){
 }
 
 async function showOdinochka(callback = null, data={}) {
-	let options = await getData();
+    let options = await getData();
     chrome.tabs.query(
       { url:"chrome-extension://*/odinochka.html" },
       t => {
@@ -298,7 +286,7 @@ async function showOdinochka(callback = null, data={}) {
           chrome.tabs.sendMessage(otab.id, data, cb);
       }
     )
-    
+
 }
 
 function reloadOdinochka(callback, data={}) {
