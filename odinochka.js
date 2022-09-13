@@ -407,9 +407,11 @@ function renderTab(tab,  a = null) {
     a = a || document.createElement("a");
     a.textContent = tab.title;
     a.href = tab.url;
-    if(tab.favicon){
-        a.style.setProperty('--bg-favicon', `url("${tab.favicon}")`);
-    }
+//    if(tab.favicon){
+//        a.style.setProperty('--bg-favicon', `url("${tab.favicon}")`);
+//    }
+    let favicon = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(tab.url)}&size=32`
+    a.style.setProperty('--bg-favicon', `url("${favicon}")`);
     a.className = "tab";
     a.target = tab.pinned ? "_pinned" :  "_blank";
     a.draggable = true;
