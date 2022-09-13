@@ -120,7 +120,7 @@ async function saveTabs(tabs, newGroup=true, show=true) {
                 data.tabs.unshift({
                   title: tab.title,
                   url:tab.url,
-                  favicon:tab.favIconUrl,
+                  //favicon:tab.favIconUrl,
                   pinned: tab.pinned
                 })
             }
