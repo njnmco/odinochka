@@ -46,13 +46,6 @@
       text-decoration: none;
     }
 
-    a.tab[href*="youtube.com/watch?v="]:hover::after,
-    a.tab[href*="youtube.com/watch?v="]:focus::after
-    {
-      content: "\00a0\00a0\00a0\2198";
-      text-decoration: none;
-    }
-
     fieldset {
       float:left;
       border-style: dashed;
@@ -65,23 +58,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    #ytouter {
-      position:fixed;
-      bottom:0;
-      right:0;
-      resize:horizontal;
-      transform: rotate(-180deg);
-      overflow:hidden;
-    }
-
-    #ytouter iframe {
-      transform: rotate(-180deg);
-      margin: 0;
-      width:100%;
-      height:100%;
-    }
-
 
     </style>
     <style>
@@ -198,7 +174,6 @@
         <a href="https://github.com/sponsors/nfultz">Sponsor</a>
         </p>
 
-        <div id=ytouter><div id=ytdiv></div></div>
     </footer>
     <script src="odinochka.js"></script>
   </body>
