@@ -83,7 +83,7 @@ function cssfilter(x) {
     }
     else {
         selector  = `a.tab:not([href*="${newfiltertxt}"])`;
-        selector2 = `div.group:not([data-urls*="${newfiltertxt}"])`;
+        selector2 = `div.group:not(:has(a.tab[href*="${newfiltertxt}"]))`;
         node.innerHTML= `${selector}, ${selector2} {display:none}`
     }
 }
