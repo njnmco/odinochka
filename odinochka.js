@@ -352,6 +352,15 @@ function fmtDate (ts) {
     return d.toLocaleString( undefined, fmt) //undefined uses browser default
 }
 
+document.addEventListener("dragover", function(event) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+});
+document.addEventListener("dragenter", function(event) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+});
+
 function divclickhandler(event) {
     var target = event.target;
     if (!target || target.className != 'tab')
@@ -366,14 +375,15 @@ function divclickhandler(event) {
             return target.tagName != 'HEADER' || groupblur(event);
         case 'dragstart':
             target.id = 'drag'
-            return true;
-        case 'dragover':
-            event.preventDefault()
+            event.dataTransfer.setData("text/plain", "foo");
+            // NB data is not set by default on HEADER tags :/
+            event.dataTransfer.effectAllowed = "move";
             return true;
         case 'dragend':
             target.id = ''
             return true;
         case 'drop':
+            console.log(event)
             return drop(event);
     }
 
@@ -422,8 +432,9 @@ function render() {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
-    for(var ev of ['click', 'dblclick', 'dragstart', 'dragend', 'dragover', 'drop'])
-        groupdiv['on'+ev]= divclickhandler
+    for(var ev of ['click', 'dblclick', 'dragstart', 'dragend','drop'])
+        //groupdiv['on'+ev]= divclickhandler
+        groupdiv.addEventListener(ev, divclickhandler);
     groupdiv.addEventListener('blur', divclickhandler, true); // onblur won't trigger, but can capture?
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
