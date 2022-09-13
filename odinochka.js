@@ -92,7 +92,7 @@ function doImport() {
     const selectedFile = document.forms['options'].elements['importfile'].files[0]
 
     let reader = new FileReader();
-    
+
     reader.onload = function(event) {
         let tabs = JSON.parse(event.target.result);
 
@@ -157,7 +157,7 @@ function groupclick(event) {
     let me = event.target;
     let ts = parseInt(event.target.parentNode.id);
     let shiftclick = event.shiftKey
-  
+
     if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
         var code = me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"|style="[^"]*"/g, '')
 
@@ -170,7 +170,7 @@ function groupclick(event) {
 
         return false;
     }
-  
+
     if( event.clientX > event.target.offsetLeft && !shiftclick) {
         // if inside box, make editable
         if(me.contentEditable == "false"){
@@ -180,27 +180,27 @@ function groupclick(event) {
         }
         return;
     }
-  
+
     if(!shiftclick) { // if not shift, then was x
         if(!confirm("Delete this group?")) return;
     }
-  
-  
+
+
     // delete it
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
         let tx = db.transaction('tabgroups', 'readwrite');
         let store = tx.objectStore('tabgroups');
-  
-  
+
+
         if(!shiftclick) { // if not shift, then was x
             removeAndUpdateCount(store.delete(ts), me.parentNode)
             return;
         }
-  
+
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result;
-  
+
             // smart selection
             var group = document.forms["options"].elements["group"].value;
             let restore = document.forms["options"].elements["restore"].value;
@@ -217,26 +217,26 @@ function groupclick(event) {
                     w => w.length <= 1 ? newTabs(data) : newWindow(data)
                 )
             }
-  
-  
+
+
             // clean up
             if(!locked && restore != "keep") {
                 removeAndUpdateCount(store.delete(ts), me.parentNode);
             }
-  
+
         }
-  
-  
+
+
     }
-    
-    
+
+
 }
 
 
 function groupblur(event) {
     var me = event.target;
     var ts = parseInt(event.target.parentNode.id);
-  
+
     var trimmer = function(s) {
         var i = s.indexOf("@");
         if(i != -1) s = s.substr(0, i);
@@ -254,7 +254,7 @@ function groupblur(event) {
 
     if(newtxt == oldtxt) return;
 
-    
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         var db = event.target.result;
 
@@ -268,7 +268,7 @@ function groupblur(event) {
         }
 
     }
-      
+
 }
 
 function removeAndUpdateCount(request, me) {

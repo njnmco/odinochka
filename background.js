@@ -1,46 +1,46 @@
 
 chrome.runtime.onInstalled.addListener(function(){
-	// Context Menus on button
+    // Context Menus on button
     // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
-	chrome.contextMenus.create({
-		  id: "odinochka_show",
-		  title: "show",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
-		  id: "odinochka_help",
-		  title: "help",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
+    chrome.contextMenus.create({
+          id: "odinochka_show",
+          title: "show",
+          contexts: ["browser_action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_help",
+          title: "help",
+          contexts: ["browser_action"],
+    });
+    chrome.contextMenus.create({
           id: "odinochka_sep",
           type: "separator",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
-		  id: "odinochka_save_win",
-		  title: "save win",
-		  contexts: ["browser_action"],
-	});
-	chrome.contextMenus.create({
-		  id: "odinochka_save_all",
-		  title: "save all",
-		  contexts: ["browser_action"],
-	});
+          contexts: ["browser_action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_save_win",
+          title: "save win",
+          contexts: ["browser_action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_save_all",
+          title: "save all",
+          contexts: ["browser_action"],
+    });
 
     // On page
-	chrome.contextMenus.create({
-		  id: "odinochka_save_link",
-		  title: "save link",
-		  contexts: ["link"],
-	});
+    chrome.contextMenus.create({
+          id: "odinochka_save_link",
+          title: "save link",
+          contexts: ["link"],
+    });
 
     // Let us open our database
     var DBOpenRequest = window.indexedDB.open("odinochka", 5);
 
     DBOpenRequest.onupgradeneeded = function(event) {
       var db = event.target.result;
-     
+
       db.onerror = function(event) {
         console.log('Error loading database.');
         console.log(event);
@@ -52,7 +52,7 @@ chrome.runtime.onInstalled.addListener(function(){
       // define what data items the objectStore will index
       objectStore.createIndex("urls", "urls", {multiEntry: true});
     };
- 
+
     chrome.tabs.create({ url: "help.html" })
 
 });
