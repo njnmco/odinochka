@@ -1,42 +1,45 @@
+// Context Menus
+chrome.contextMenus.create({
+      id: "odinochka_show",
+      title: "show",
+      contexts: ["action"],
+});
+chrome.contextMenus.create({
+      id: "odinochka_help",
+      title: "help",
+      contexts: ["action"],
+});
+chrome.contextMenus.create({
+      id: "odinochka_sep",
+      type: "separator",
+      contexts: ["action"],
+});
+chrome.contextMenus.create({
+      id: "odinochka_save_win",
+      title: "save win",
+      contexts: ["action"],
+});
+chrome.contextMenus.create({
+      id: "odinochka_save_all",
+      title: "save all",
+      contexts: ["action"],
+});
+
+// On page
+chrome.contextMenus.create({
+      id: "odinochka_save_link",
+      title: "save link",
+      contexts: ["link"],
+});
+
+// ---------------------------------------------------
 
 chrome.runtime.onInstalled.addListener(function(){
     // Context Menus on button
     // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
-    chrome.contextMenus.create({
-          id: "odinochka_show",
-          title: "show",
-          contexts: ["browser_action"],
-    });
-    chrome.contextMenus.create({
-          id: "odinochka_help",
-          title: "help",
-          contexts: ["browser_action"],
-    });
-    chrome.contextMenus.create({
-          id: "odinochka_sep",
-          type: "separator",
-          contexts: ["browser_action"],
-    });
-    chrome.contextMenus.create({
-          id: "odinochka_save_win",
-          title: "save win",
-          contexts: ["browser_action"],
-    });
-    chrome.contextMenus.create({
-          id: "odinochka_save_all",
-          title: "save all",
-          contexts: ["browser_action"],
-    });
-
-    // On page
-    chrome.contextMenus.create({
-          id: "odinochka_save_link",
-          title: "save link",
-          contexts: ["link"],
-    });
 
     // Let us open our database
-    var DBOpenRequest = window.indexedDB.open("odinochka", 5);
+    var DBOpenRequest = indexedDB.open("odinochka", 5);
 
     DBOpenRequest.onupgradeneeded = function(event) {
       var db = event.target.result;
@@ -94,7 +97,7 @@ async function saveTabs(tabs, newGroup=true, show=true) {
     let o_pattern = /chrome-extension:\/\/[a-z]*\/odinochka.html/;
     tabs = tabs.filter(t => !o_pattern.test(t.url));
 
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+    indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
 
         let tx = db.transaction('tabgroups', 'readwrite');
@@ -221,7 +224,7 @@ function getData() {
 
 
 // handle clicks to our extension icon
-chrome.browserAction.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
+chrome.action.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((details, tab) => command_handler(details.menuItemId, true, details));
