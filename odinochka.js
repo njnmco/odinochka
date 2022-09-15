@@ -270,6 +270,7 @@ function tabclick(event) {
     let locked = me.parentNode.children[0].textContent.indexOf("lock") > 0;
     let i = Array.from(me.parentNode.children).indexOf(me) - 1;
 
+
     if (isX) {
         deleteTabFromGroup(ts, i, me);
         return false;
@@ -383,11 +384,10 @@ function divclickhandler(event) {
             target.id = ''
             return true;
         case 'drop':
-            console.log(event)
             return drop(event);
     }
 
-    console.log(event); // should be impossible
+    console.warn(event); // should be impossible
     return true;
 }
 
@@ -431,9 +431,9 @@ function render() {
     // Building tab list
     let groupdiv = document.getElementById("groups");
     groupdiv.innerHTML = '';
+    // NB https://stackoverflow.com/a/5423029/986793 must use 'onclick' etc to cancel events via return value
     for(var ev of ['click', 'dblclick', 'dragstart', 'dragend','drop'])
-        //groupdiv['on'+ev]= divclickhandler
-        groupdiv.addEventListener(ev, divclickhandler);
+        groupdiv['on'+ev]= divclickhandler
     groupdiv.addEventListener('blur', divclickhandler, true); // onblur won't trigger, but can capture?
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
