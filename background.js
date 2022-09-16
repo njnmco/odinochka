@@ -1,42 +1,47 @@
-// Context Menus
-chrome.contextMenus.create({
-      id: "odinochka_show",
-      title: "show",
-      contexts: ["action"],
-});
-chrome.contextMenus.create({
-      id: "odinochka_help",
-      title: "help",
-      contexts: ["action"],
-});
-chrome.contextMenus.create({
-      id: "odinochka_sep",
-      type: "separator",
-      contexts: ["action"],
-});
-chrome.contextMenus.create({
-      id: "odinochka_save_win",
-      title: "save win",
-      contexts: ["action"],
-});
-chrome.contextMenus.create({
-      id: "odinochka_save_all",
-      title: "save all",
-      contexts: ["action"],
-});
+function contextMenus() {
+    // Context Menus on button
+    // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
 
-// On page
-chrome.contextMenus.create({
-      id: "odinochka_save_link",
-      title: "save link",
-      contexts: ["link"],
-});
+    // Context Menus
+    chrome.contextMenus.create({
+          id: "odinochka_show",
+          title: "show",
+          contexts: ["action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_help",
+          title: "help",
+          contexts: ["action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_sep",
+          type: "separator",
+          contexts: ["action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_save_win",
+          title: "save win",
+          contexts: ["action"],
+    });
+    chrome.contextMenus.create({
+          id: "odinochka_save_all",
+          title: "save all",
+          contexts: ["action"],
+    });
+
+    // On page
+    chrome.contextMenus.create({
+          id: "odinochka_save_link",
+          title: "save link",
+          contexts: ["link"],
+    });
+}
 
 // ---------------------------------------------------
 
 chrome.runtime.onInstalled.addListener(function(){
-    // Context Menus on button
-    // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
+
+    contextMenus();
 
     // Let us open our database
     var DBOpenRequest = indexedDB.open("odinochka", 5);
@@ -54,9 +59,9 @@ chrome.runtime.onInstalled.addListener(function(){
 
       // define what data items the objectStore will index
       objectStore.createIndex("urls", "urls", {multiEntry: true});
+      chrome.tabs.create({ url: "help.html" })
     };
 
-    chrome.tabs.create({ url: "help.html" })
 
 });
 
@@ -86,8 +91,7 @@ function cleanTabData(tab) {
     return tab;
 }
 
-
-async function saveTabs(tabs, newGroup=true, show=true) {
+async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
     let options = await getData();
 
     if(newGroup && options.pinned == "skip") {
@@ -108,7 +112,7 @@ async function saveTabs(tabs, newGroup=true, show=true) {
 
             let data = cursor ? cursor.value : {
                   ts: new Date().getTime(),
-                  name: "Untitled Group",
+                  name: tabGroupTitle || "Untitled Group",
                   tabs: []
             }
 
@@ -240,19 +244,19 @@ async function command_handler(command, showOnSingleTab=false, details=null){
     }
     if (command == "odinochka_save_tab") {
        chrome.tabs.query(
-         {windowId: chrome.windows.WINDOW_ID_CURRENT, active: true},
+         {currentWindow:true, active: true},
          tab => saveTabs(tab, false, showOnSingleTab)
        );
     }
     if (command == "odinochka_save_selected") {
         chrome.tabs.query(
-            {windowId: chrome.windows.WINDOW_ID_CURRENT, highlighted: true},
+            {currentWindow: true, highlighted: true},
             saveTabs
         )
     }
     if (command == "odinochka_save_win") {
        chrome.tabs.query(
-           {windowId: chrome.windows.WINDOW_ID_CURRENT},
+           {currentWindow: true},
            saveTabs
        );
     }

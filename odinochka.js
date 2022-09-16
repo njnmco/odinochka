@@ -1,7 +1,10 @@
+// defer render til loaded, h/t snte
+document.addEventListener('DOMContentLoaded', function () {
+    render()
+    initOptions()
+    closeOthers()
+});
 
-render()
-initOptions()
-closeOthers()
 
 
 
@@ -18,6 +21,20 @@ function newTabs(data) {
     data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
 }
 
+async function newGroup(data, title=null) {
+    let tabIds = []
+
+    for(o of data.tabs) {
+        let tab = await chrome.tabs.create({url: o.url, pinned: o.pinned});
+        tabIds.push(tab.id);
+    }
+    let groupID = await chrome.tabs.group({tabIds:tabIds});
+
+    if (title) {
+        chrome.tabGroups.update(groupID, {title:title});
+    }
+
+}
 
 function debounce(func, wait, immediate) {
     let timeout;
@@ -171,6 +188,9 @@ function groupclick(event) {
             }
             else if(group == 'current') {
                 newTabs(data);
+            }
+            else if(group == 'tabGroup') {
+                newGroup(data, me.innerText);
             }
             else if(group == 'smart') {
                 chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT, pinned: false},
