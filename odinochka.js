@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
-
 function newWindow(data) {
   chrome.windows.create({url: data.urls}, function(w) {
       w.tabs.filter((t,i) => data.tabs[i].pinned).forEach(
@@ -25,14 +23,20 @@ async function newGroup(data, title=null) {
     let tabIds = []
 
     for(o of data.tabs) {
-        let tab = await chrome.tabs.create({url: o.url, pinned: o.pinned});
-        tabIds.push(tab.id);
+        let tab = chrome.tabs.create({url: o.url, pinned: o.pinned, active: false});
+        tabIds.push(tab.then(t => t.id));
     }
+
+    tabIds = await Promise.all(tabIds);
+
     let groupID = await chrome.tabs.group({tabIds:tabIds});
+ 
 
     if (title) {
         chrome.tabGroups.update(groupID, {title:title});
     }
+
+    chrome.tabs.update(tabIds.pop(), {active:true});
 
 }
 
@@ -190,7 +194,7 @@ function groupclick(event) {
                 newTabs(data);
             }
             else if(group == 'tabGroup') {
-                newGroup(data, me.innerText);
+                newGroup(data, me.innerText.replace(/ @ .*/, ""));
             }
             else if(group == 'smart') {
                 chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT, pinned: false},

@@ -91,6 +91,33 @@ function cleanTabData(tab) {
     return tab;
 }
 
+async function saveTabsByGroup(tabs) {
+    let groups = {};
+    
+    for(let t of tabs) {
+        if(t.groupId in groups) {
+            groups[t.groupId].push(t);
+        } else {
+            groups[t.groupId] = [ t ];
+        }
+    }
+
+    // NB above is converting ids into strings for some reason?
+    for(let i in groups) {
+        let title = '';
+        if( i != "-1") {
+            let group = await chrome.tabGroups.get(parseInt(i));
+            title = group.title;
+        }
+        groups[i] = saveTabs(groups[i], true, false, title);
+    }
+
+    await Promise.all(Object.values(groups));
+
+    showOdinochka()
+
+}
+
 async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
     let options = await getData();
 
@@ -213,7 +240,7 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
 
 // https://stackoverflow.com/a/49595052/986793
 function getData() {
-  let sKey =  {dupe: "keep", pinned: "skip", grabfocus: "always"};
+  let sKey =  {dupe: "keep", pinned: "skip", grabfocus: "always", tabGroupCloseAction:"autosave"};
   return new Promise(function(resolve, reject) {
     chrome.storage.local.get(sKey, function(items) {
       if (chrome.runtime.lastError) {
@@ -251,19 +278,19 @@ async function command_handler(command, showOnSingleTab=false, details=null){
     if (command == "odinochka_save_selected") {
         chrome.tabs.query(
             {currentWindow: true, highlighted: true},
-            saveTabs
+            saveTabsByGroup
         )
     }
     if (command == "odinochka_save_win") {
        chrome.tabs.query(
            {currentWindow: true},
-           saveTabs
+           saveTabsByGroup
        );
     }
     if (command == "odinochka_save_all") {
         chrome.windows.getAll(
             ws => ws.forEach(
-                w => chrome.tabs.query({windowId: w.id}, saveTabs)
+                w => chrome.tabs.query({windowId: w.id}, saveTabsByGroup)
             )
         )
     }
@@ -271,6 +298,7 @@ async function command_handler(command, showOnSingleTab=false, details=null){
         saveTabs([{title: details.linkUrl, url:details.linkUrl, favicon:"", pinned:false}], false, false)
     }
 }
+
 
 async function showOdinochka(callback = null, data={}) {
     let options = await getData();
