@@ -29,10 +29,8 @@ async function newGroup(data, title=null) {
 
     tabIds = await Promise.all(tabIds);
 
-    let groupID = await chrome.tabs.group({tabIds:tabIds});
- 
-
     if (title) {
+        let groupID = await chrome.tabs.group({tabIds:tabIds});
         chrome.tabGroups.update(groupID, {title:title});
     }
 
@@ -197,8 +195,10 @@ function groupclick(event) {
                 newGroup(data, me.innerText.replace(/ @ .*/, ""));
             }
             else if(group == 'smart') {
-                chrome.tabs.query({windowId:chrome.windows.WINDOW_ID_CURRENT, pinned: false},
-                    w => w.length <= 1 ? newTabs(data) : newWindow(data)
+               
+                chrome.tabs.query({currentWindow:true, active:false, pinned: false, groupId:chrome.tabGroups.TAB_GROUP_ID_NONE},
+                    w => w.length >= 1 ? newWindow(data) :
+                        newGroup(data, me.innerText.replace(/ @ .*/, ""))
                 )
             }
 
