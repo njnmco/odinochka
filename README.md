@@ -1,6 +1,6 @@
 # odinochka
 
-## OneTab
+## Background / issues with OneTab
 
 I was a heavy OneTab user.
 
@@ -32,8 +32,6 @@ So I wrote my own.
   - [x] UI page
     - [x] list tabs
         - [x] restore tab
-          - [x] pop out youtube mini player
-            - [x] resizing preserves aspect ratio
         - [x] delete tab
         - [x] favicons
         - [x] drag and drop
@@ -55,7 +53,10 @@ So I wrote my own.
       - [x] disable favicons
     - [x] Filter box
     - [x] refresh in place
-  - [x] automated cloud backup
+  - [x] Compatible with TabGroups
+    - [x] On save window
+    - [x] On restore
+    - [x] persist group title correctly
 
 ## Etymology
 
@@ -84,25 +85,3 @@ Chrome can mysteriously delete data whenever it crashes, so I recommend regularl
 2. Convert using
   `jq '[{ts:3, name:"pinboard", tabs:[   .[] | {title:.description, url:.href, favicon:"", pinned:false} ], urls:[.[].href] }]' downloads/pinbord.json >pinboard.out`
 3. Import the converted json
-
-### Automated cloud backup
-
-To enable automated cloud backup, add the following to the "Advanced options":
-
-```
-{
-"url": "https://MY.REST/ENDPOINT",
-"method": "PUT",
-"interval": 30,
-"consent": "I know what I'm doing."
-}
-```
-
-A timer (interval in minutes) will XHR the dumped tab database to the specified URL.
-
-To use Amazon AWS for storage:
-
-  * Create an S3 bucket
-  * Proxy the bucket using AWS API Gateway (see [tutorial](https://docs.aws.amazon.com/apigateway/latest/developerguide/integrating-api-with-aws-services-s3.html#api-items-in-folder-as-s3-objects-in-bucket))
-  * Enable [CORS](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html#how-to-cors-console) on the Gateway
-
