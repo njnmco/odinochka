@@ -142,7 +142,8 @@ function groupclick(event) {
 
         chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
                                 encodeURIComponent(
-                                    '<html><style>a{display:block}</style>' +
+                                    '<html><head><style>a{display:block}</style>' +
+                                    `<style>${document.getElementById("cssfilterstyle").innerHTML.replace(/.tab/, "")}</style>` +
                                     `<title>${me.textContent}</title>` + code +
                                     '</html>'
                                 )  })
