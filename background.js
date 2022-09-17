@@ -156,15 +156,20 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
                 })
             }
 
+            // if all tabs were filtered out, bail
+            if(newGroup && data.tabs.length == 0) {
+                if(show) showOdinochka(cb, {});
+                return;
+            }
+
             let alsoUpdate = {};
             let closeTabs = function(event) {
                 let ids = tabs.map(t => t.id).filter(Number);
-                let cb = ids ? () => chrome.tabs.remove(ids) : null;
+                let cb = () => chrome.tabs.remove(ids);
                 data.update = alsoUpdate;
                 show ? showOdinochka(cb, data) : reloadOdinochka(cb, data);
             };
 
-            if(newGroup && data.tabs.length == 0) return closeTabs();
 
             // Put this updated object back into the database.
             let updateIt = function() {
