@@ -1,6 +1,6 @@
 {
     "name": "odinochka",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "description": "Open source tab vault",
     "permissions": ["contextMenus", "tabs", "tabGroups", "unlimitedStorage", "storage", "favicon"],
     "background": {
