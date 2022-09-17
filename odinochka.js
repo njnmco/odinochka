@@ -15,26 +15,26 @@ function newWindow(data) {
   })
 }
 
-function newTabs(data) {
-    data.tabs.forEach(o => chrome.tabs.create({url: o.url, pinned: o.pinned}))
-}
-
-async function newGroup(data, title=null) {
+async function newTabs(data) {
     let tabIds = []
 
-    for(o of data.tabs) {
+    for(let o of data.tabs) {
         let tab = chrome.tabs.create({url: o.url, pinned: o.pinned, active: false});
         tabIds.push(tab.then(t => t.id));
     }
 
     tabIds = await Promise.all(tabIds);
+    chrome.tabs.update(tabIds[tabIds.length - 1], {active:true});
+    return tabIds;
+}
+
+async function newGroup(data, title=null) {
+    let tabIds = await newTabs(data);
 
     if (title) {
         let groupID = await chrome.tabs.group({tabIds:tabIds});
         chrome.tabGroups.update(groupID, {title:title});
     }
-
-    chrome.tabs.update(tabIds.pop(), {active:true});
 
 }
 
