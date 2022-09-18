@@ -554,6 +554,8 @@ function drop(event) {
 
         store.get(tgt.id).onsuccess = function(event1) {
             let tdata = event1.target.result;
+
+            // link-to-link within a group
             if (tgt.id == src.id) {
                 tdata.tabs.splice(tgt.index + 1, 0, tdata.tabs[src.index]);
                 tdata.tabs.splice(src.index + (src.index > tgt.index), 1);
@@ -567,6 +569,7 @@ function drop(event) {
                 let sdata = event2.target.result;
                 let callback;
 
+                // group to group
                 if(src.group && tgt.group) {
                     let toAppendNodes = [], toKeepTabs = [];
                     let snode = src.node.nextSibling, i = 0;
@@ -582,15 +585,13 @@ function drop(event) {
                     }
                     sdata.tabs = toKeepTabs;
                     callback = function() {
-                        if(sdata.tabs.length == 0) {
-                            src.parentNode.remove();
-                        }
                         tgt.parentNode.append(...toAppendNodes);
                         if(sdata.tabs.length > 0) {
                             cssfilter({target: document.getElementById("filter")});
                         }
                     }
                 } else {
+                    // link to group
                     tdata.tabs.splice(tgt.index, 0, sdata.tabs[src.index]);
                     sdata.tabs.splice(src.index, 1);
                     callback = moveNode
