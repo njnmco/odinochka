@@ -28,14 +28,10 @@ async function newTabs(data) {
     return tabIds;
 }
 
-async function newGroup(data, title=null) {
+async function newGroup(data) {
     let tabIds = await newTabs(data);
-
-    if (title) {
-        let groupID = await chrome.tabs.group({tabIds:tabIds});
-        chrome.tabGroups.update(groupID, {title:title});
-    }
-
+    let groupID = await chrome.tabs.group({tabIds:tabIds});
+    chrome.tabGroups.update(groupID, {title:data.name});
 }
 
 function debounce(func, wait, immediate) {
@@ -173,40 +169,79 @@ function groupclick(event) {
         let store = tx.objectStore('tabgroups');
 
 
-        if(!shiftclick) { // if not shift, then was x
-            removeAndUpdateCount(store.delete(ts), me.parentNode)
-            return;
-        }
 
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result;
+
+            // TODO merge with similar chunk in drop() into helper
+            // find out which tabs are actuall displayed
+            let snode = me.nextSibling;
+            let i = 0, toShow = [], toKeep = [], toRemoveNodes = [];
+            while(snode) {
+                if(window.getComputedStyle(snode).display == 'none') {
+                    toKeep.push(data.tabs[i]);
+                } else {
+                    toShow.push(data.tabs[i]);
+                    toRemoveNodes.push(snode);
+                }
+                snode = snode.nextSibling; i++;
+            }
+
+
 
             // smart selection
             var group = document.forms["options"].elements["group"].value;
             let restore = document.forms["options"].elements["restore"].value;
             let locked = data.name.indexOf("lock") > -1;
 
-            if(group == 'new') {
+            data.tabs = toShow;
+
+            if(!shiftclick) {
+                // if not shift, then was x
+            }
+            else if(group == 'new') {
                 newWindow(data);
             }
             else if(group == 'current') {
                 newTabs(data);
             }
             else if(group == 'tabGroup') {
-                newGroup(data, me.innerText.replace(/ @ .*/, ""));
+                newGroup(data);
             }
             else if(group == 'smart') {
                
-                chrome.tabs.query({currentWindow:true, active:false, pinned: false, groupId:chrome.tabGroups.TAB_GROUP_ID_NONE},
-                    w => w.length >= 1 ? newWindow(data) :
-                        newGroup(data, me.innerText.replace(/ @ .*/, ""))
+                chrome.tabs.query(
+                    {currentWindow:true, active:false, pinned: false, groupId:chrome.tabGroups.TAB_GROUP_ID_NONE},
+                    w => w.length >= 1 ? newWindow(data) : newGroup(data)
                 )
+                
             }
 
 
             // clean up
             if(!locked && restore != "keep") {
-                removeAndUpdateCount(store.delete(ts), me.parentNode);
+                if(toKeep.length == 0) {
+                    removeAndUpdateCount(store.delete(ts), me.parentNode);
+                } else {
+                    // make a new object here, race condition with window creation
+                    // if you do data.tabs = toKeep, the wrong tabs can be shown stochasticly.
+                    let data2 = {
+                        ts: data.ts,
+                        name: data.name,
+                        tabs: toKeep,
+                        urls: toKeep.map(t => t.url)
+                    };
+
+                    request = store.put(data2);
+                    //todo generalize removeAndUpdateCount to be variadic to handle below.
+                    request.onsuccess = function(event) {
+                        for(let n of toRemoveNodes) {
+                            n.remove();
+                        }
+                        updateCount(request.source)
+                        cssfilter({target: document.getElementById("filter")});
+                    }
+                }
             }
 
         }
