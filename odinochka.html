@@ -59,6 +59,10 @@
       flex-direction: column;
     }
 
+    span#clearFilter {
+      display: none;
+    }
+
     </style>
     <style>
     /* toggle based on https://alligator.io/css/collapsible/ */
@@ -103,7 +107,7 @@
     <header>
         <h1>Odinochka</h1>
         <h2 id=size></h2>
-        URL Filter: <input type="text" name="filter" id=filter />
+        URL Filter: <input type="text" name="filter" id=filter /> <span id=clearFilter>&#x2716;</span>
     </header>
 
     <div id=groups>

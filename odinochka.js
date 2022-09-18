@@ -59,8 +59,16 @@ function cssfilter(x) {
     else {
         selector  = `a.tab:not([href*="${newfiltertxt}"])`;
         selector2 = `div.group:not(:has(a.tab[href*="${newfiltertxt}"]))`;
-        node.innerHTML= `${selector}, ${selector2} {display:none}`
+        node.innerHTML= `
+          ${selector}, ${selector2} {display:none}
+          span#clearFilter {display:inline}
+        `
     }
+}
+
+function doClearFilter() {
+    document.getElementById("filter").value = '';
+    cssfilter({target: document.getElementById("filter")});
 }
 
 function doImport() {
@@ -382,6 +390,7 @@ function initOptions() {
 
 
     document.getElementById("filter").oninput = debounce(cssfilter, 50);
+    document.getElementById("clearFilter").onclick = doClearFilter;
 
     handle_sty = function(e){ document.getElementById(this.name + 'style').media = this.dataset.media};
     document.querySelectorAll("[name=favicon], [name=order]").forEach(e => e.onchange = handle_sty);
