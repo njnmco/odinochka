@@ -543,6 +543,7 @@ function drop(event) {
 
     let moveNode = function() {
         tgt.parentNode.insertBefore(src.node, tgt.node.nextSibling);
+        cssfilter({target: document.getElementById("filter")});
     }
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -567,17 +568,27 @@ function drop(event) {
                 let callback;
 
                 if(src.group && tgt.group) {
-                    tdata.tabs = tdata.tabs.concat(sdata.tabs);
-                    sdata.tabs = []
-                    callback = function() {
-                        let toAppend = [];
-                        let snode = src.node;
-                        while(snode.nextSibling) {
-                            toAppend.push(snode.nextSibling);
-                            snode = snode.nextSibling;
+                    let toAppendNodes = [], toKeepTabs = [];
+                    let snode = src.node.nextSibling, i = 0;
+                    while(snode) {
+                        if(window.getComputedStyle(snode).display == 'none') {
+                            toKeepTabs.push(sdata.tabs[i])
+                        } else {
+                            toAppendNodes.push(snode);
+                            tdata.tabs.push(sdata.tabs[i])
                         }
-                        src.parentNode.innerHTML = ''; //append below triggers N mutationEvents on src, but one on tgt
-                        tgt.parentNode.append(...toAppend);
+                        snode = snode.nextSibling;
+                        i++;
+                    }
+                    sdata.tabs = toKeepTabs;
+                    callback = function() {
+                        if(sdata.tabs.length == 0) {
+                            src.parentNode.remove();
+                        }
+                        tgt.parentNode.append(...toAppendNodes);
+                        if(sdata.tabs.length > 0) {
+                            cssfilter({target: document.getElementById("filter")});
+                        }
                     }
                 } else {
                     tdata.tabs.splice(tgt.index, 0, sdata.tabs[src.index]);
