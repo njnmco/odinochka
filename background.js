@@ -125,6 +125,10 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
         tabs = tabs.filter(t => !t.pinned)
     }
 
+    if(newGroup && options.audible == "skip") {
+        tabs = tabs.filter(t => !t.audible)
+    }
+
     let o_pattern = /chrome-extension:\/\/[a-z]*\/odinochka.html/;
     tabs = tabs.filter(t => !o_pattern.test(t.url));
 
@@ -164,7 +168,12 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
 
             let alsoUpdate = {};
             let closeTabs = function(event) {
-                let ids = tabs.map(t => t.id).filter(Number);
+                var close_tabs = tabs;
+                if(options.audible == "leave") {
+                    close_tabs = close_tabs.filter(t => !t.audible)
+                }
+
+                let ids = close_tabs.map(t => t.id).filter(Number);
                 let cb = () => chrome.tabs.remove(ids);
                 data.update = alsoUpdate;
                 show ? showOdinochka(cb, data) : reloadOdinochka(cb, data);
@@ -245,7 +254,7 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
 
 // https://stackoverflow.com/a/49595052/986793
 function getData() {
-  let sKey =  {dupe: "keep", pinned: "skip", grabfocus: "always", tabGroupCloseAction:"autosave"};
+  let sKey =  {dupe: "keep", pinned: "skip", audible: "close", grabfocus: "always", tabGroupCloseAction:"autosave"};
   return new Promise(function(resolve, reject) {
     chrome.storage.local.get(sKey, function(items) {
       if (chrome.runtime.lastError) {

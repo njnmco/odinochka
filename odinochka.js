@@ -367,9 +367,10 @@ function initOptions() {
         restore: "remove",
         group: "smart",
         pinned: "skip",
+        audible: "close",
         favicon: "show",
-        order: 'desc',
-        grabfocus: 'always',
+        order: "desc",
+        grabfocus: "always",
     }
 
     chrome.storage.local.get(DEFAULT_OPTIONS, function(o) {
@@ -378,8 +379,8 @@ function initOptions() {
                 e => e.checked = e.value == o[i]
             )
         }
-        if (o.favicon == 'show') document.getElementById('faviconstyle').media = 'all'; //set initial state
-        if (o.order == 'asc') document.getElementById('orderstyle').media = 'all'; //set initial state
+        if (o.favicon == "show") document.getElementById('faviconstyle').media = 'all'; //set initial state
+        if (o.order == "asc") document.getElementById('orderstyle').media = 'all'; //set initial state
     })
 
     document.forms["options"].onchange = function (e) {
@@ -517,7 +518,19 @@ function render() {
             let cursor = event.target.result;
             if (cursor) {
                 cursor.continue();
-                groupdiv.appendChild(renderGroup(cursor.value));
+
+                let data = cursor.value;
+                // TODO
+                // if(data.name.startswith('snooze')) {
+                //     if(check_time) {
+                //         let prom = newGroup(data);
+                //         prom.then( cursor.delete );
+                //         return;
+                //     }
+                // }
+
+
+                groupdiv.appendChild(renderGroup(data));
             }
         };
     };
