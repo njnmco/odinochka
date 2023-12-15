@@ -51,7 +51,6 @@
     }
 
     fieldset {
-      float:left;
       border-style: dashed;
     }
 
@@ -68,29 +67,79 @@
     }
 
     </style>
+
     <style>
-    /* toggle based on https://alligator.io/css/collapsible/ */
-    footer {
-      position:sticky;
-      background:white;
-      bottom:0;
-      min-height: 2em;
-      padding-top: .5em;
-      padding-bottom: .5em;
-      border-top: 1px solid black;
-      margin-bottom: 0;
+
+    /* popover setting bar based on https://developer.chrome.com/blog/css-wrapped-2023#popover-live-demo */
+
+	#menu {
+	  width: 320px;
+	  height: 100%;
+
+	  /*  undo popover styles  */
+	  border: none;
+	  padding: 0;
+	  margin: 0;
+	  left: auto;
+
+	  /*  animate  */
+	  transition: translate 0.5s ease-out, display 0.5s ease-out allow-discrete,
+		overlay 0.5s ease-out allow-discrete;
+	  translate: 250px 0;
+
+	  &::backdrop {
+		opacity: 0;
+		background: rgba(0, 0, 0, 0.5);
+		transition: opacity 0.5s;
+	  }
+
+	  &:popover-open {
+		translate: 0 0;
+
+		&::backdrop {
+		  opacity: 1;
+		}
+
+
+		@starting-style {
+		  translate: 250px 0;
+
+		  &::backdrop {
+			opacity: 0;
+		  }
+		}
+	  }
+	}
+
+	/* Other styles */
+
+	.menu-btn {
+	  position: fixed;
+	  top: 0;
+	  right: 0;
+	  background: none;
+	  border: none;
+	  filter: drop-shadow(2px 2px 0 #ff6dee);
+	}
+
+	.close-btn {
+	  background: none;
+	  border: none;
+	  filter: grayscale(1) drop-shadow(2px 2px 0 #ff6dee);
+	  float:right;
+	}
+
+    /* Hides the main scrollbar when popover is open */
+	body:has(#menu:popover-open) {
+		overflow: hidden; /* Hide scrollbars */
     }
 
-    .lbl-toggle ~ p {display: inline;}
-
-    form.options, input.toggle { display: none; }
-
-    .toggle:checked + .lbl-toggle + form.options {
-      display: block;
-    }
     </style>
+
+
     <style id=cssfilterstyle>
     </style>
+
     <style id=faviconstyle media="not all">
     a.tab {
       background-image: var(--bg-favicon);
@@ -99,19 +148,24 @@
       background-size: 1em 1em;
     }
     </style>
+
     <style id=orderstyle media="not all">
     div#groups {
       flex-direction: column-reverse !important;
     }
     </style>
-  </head>
-  <body>
 
+  </head>
+
+  <body>
       
     <header>
         <h1>Odinochka</h1>
         <h2 id=size></h2>
         URL Filter: <input type="text" name="filter" id=filter /> <span id=clearFilter>&#x2716;</span>
+
+        <button class="menu-btn" popovertarget="menu">&#x2630;</button>
+
     </header>
 
     <div id=groups>
@@ -120,9 +174,13 @@
           -->
     </div>
 
-    <footer>
-        <input id="collapsible" class="toggle" type="checkbox">
-        <label for="collapsible" class="lbl-toggle">&#x2630;</label>
+
+    <div popover role="menu" id="menu">
+
+        <button class="close-btn" popovertarget="menu" popovertargetaction="hide">
+            <span>&#x274C</span>
+        </button>
+
         <form name=options class=options><fieldset>
                 <legend>Options</legend>
 
@@ -179,8 +237,11 @@
         </fieldset>
 
         </fieldset></form>
+    </div>
+
+    <footer>
         <p>
-        Copyright njnm 2019-2022.
+        Copyright njnm 2019-2023.
 
         <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GPL-3.</a>
 
