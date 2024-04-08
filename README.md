@@ -85,3 +85,8 @@ Chrome can mysteriously delete data whenever it crashes, so I recommend regularl
 2. Convert using
   `jq '[{ts:3, name:"pinboard", tabs:[   .[] | {title:.description, url:.href, favicon:"", pinned:false} ], urls:[.[].href] }]' downloads/pinbord.json >pinboard.out`
 3. Import the converted json
+
+### Restoring from a crashed computer with odinochka
+
+Odinochka uses Chrome's internal database to store all tabs. The database folder is located in `~/.config/google-chrome/Default/IndexedDB/chrome-extension_gdoeiedioceagbkajogciogiopdgpoba_0.indexeddb.leveldb/`.
+Close chrome, copy that folder from the old Chrome Profile folder on the old disk to a new profile folder. Restart chrome and odinochka should be populated.
