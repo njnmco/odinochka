@@ -1,3 +1,5 @@
+import {do_gdrive_backup} from './gdrive.js'
+
 // defer render til loaded, h/t snte
 document.addEventListener('DOMContentLoaded', function () {
     render()
@@ -71,6 +73,7 @@ function doClearFilter() {
     cssfilter({target: document.getElementById("filter")});
 }
 
+
 function doImport() {
     const selectedFile = document.forms['options'].elements['importfile'].files[0]
 
@@ -103,7 +106,20 @@ function doImport() {
     return false;
 }
 
-function doExport() {
+function download(result) {
+	// snippet by elite, https://stackoverflow.com/a/45831357
+	let filename = "odinochka.json";
+	let blob = new Blob([JSON.stringify(result)], {type: 'text/plain'});
+	let e = document.createEvent('MouseEvents'),
+		a = document.createElement('a');
+	a.download = filename;
+	a.href = window.URL.createObjectURL(blob);
+	a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
+	e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+	a.dispatchEvent(e);
+}
+
+function doExport(process_result=download) {
     let result = [];
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
@@ -120,19 +136,16 @@ function doExport() {
                 cursor.continue();
             }
             else {
-                // snippet by elite, https://stackoverflow.com/a/45831357
-                let filename = "odinochka.json";
-                let blob = new Blob([JSON.stringify(result)], {type: 'text/plain'});
-                let e = document.createEvent('MouseEvents'),
-                    a = document.createElement('a');
-                a.download = filename;
-                a.href = window.URL.createObjectURL(blob);
-                a.dataset.downloadurl = ['text/plain', a.download, a.href].join(':');
-                e.initEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                a.dispatchEvent(e);
+				process_result(result)
             }
         };
     };
+    return false;
+}
+
+
+function doExportGdrive() {
+    doExport(do_gdrive_backup)
     return false;
 }
 
@@ -393,7 +406,7 @@ function initOptions() {
     document.getElementById("filter").oninput = debounce(cssfilter, 50);
     document.getElementById("clearFilter").onclick = doClearFilter;
 
-    handle_sty = function(e){ document.getElementById(this.name + 'style').media = this.dataset.media};
+    const handle_sty = function(e){ document.getElementById(this.name + 'style').media = this.dataset.media};
     document.querySelectorAll("[name=favicon], [name=order]").forEach(e => e.onchange = handle_sty);
 
     // Import / Export feature
@@ -402,6 +415,7 @@ function initOptions() {
     };
     document.getElementById("import").onclick = doImport;
     document.getElementById("export").onclick = doExport;
+    document.getElementById("gdrive").onclick = doExportGdrive;
 
 }
 

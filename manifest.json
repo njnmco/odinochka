@@ -3,8 +3,16 @@
     "version": "3.2.0",
     "description": "Open source tab vault",
     "permissions": ["contextMenus", "tabs", "tabGroups", "unlimitedStorage", "storage", "favicon"],
+    "optional_permissions": ["identity"],
+    "oauth2": {
+        "client_id": "396036734490-fv1kvvuk8npgtjlmgen926ahsvc18f72.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/drive.file"
+        ]
+    },
     "background": {
-      "service_worker": "background.js"
+      "service_worker": "background.js",
+	  "type": "module"
     },
 	"commands": {
 	  "odinochka_show": {
@@ -33,5 +41,5 @@
         "48": "images/odinochka48.png",
         "128": "images/odinochka128.png"
     },
-    "manifest_version":3
+    "manifest_version":3,
 }
