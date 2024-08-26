@@ -59,8 +59,9 @@ function cssfilter(x) {
         node.innerHTML = "";
     }
     else {
-        const selector  = `a.tab:not([href*="${newfiltertxt}"])`;
-        const selector2 = `div.group:not(:has(a.tab[href*="${newfiltertxt}"]))`;
+        newfiltertxt = newfiltertxt.split(/\s+/).filter(x=>x).map(x => `[href*="${x}" i]`).join("");
+        const selector  = `a.tab:not(${newfiltertxt})`;
+        const selector2 = `div.group:not(:has(a.tab${newfiltertxt}))`;
         node.innerHTML= `
           ${selector}, ${selector2} {display:none}
           span#clearFilter {display:inline}
