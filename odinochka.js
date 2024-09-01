@@ -37,6 +37,17 @@ async function newGroup(data) {
     chrome.tabGroups.update(groupID, {title:data.name});
 }
 
+/* Filter box code */
+
+// https://stackoverflow.com/questions/3615726/how-do-i-trigger-esc-button-to-clear-text-entered-in-text-box
+// note needs to be on keyup https://stackoverflow.com/a/37461974/986793
+function onkeyup(evt, input) {
+    var code = evt.charCode || evt.keyCode;
+    if (code == 27) {
+        doClearFilter();
+    }
+}
+
 function debounce(func, wait, immediate) {
     let timeout;
     return function(e) {
@@ -388,6 +399,7 @@ function initOptions() {
     }
 
 
+    document.getElementById("filter").onkeyup = onkeyup;
     document.getElementById("filter").oninput = debounce(cssfilter, 50);
     document.getElementById("clearFilter").onclick = doClearFilter;
 
