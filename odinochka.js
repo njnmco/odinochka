@@ -1,4 +1,5 @@
 import {do_gdrive_backup} from './gdrive.js'
+import {doExport} from './exporter.js'
 
 // defer render til loaded, h/t snte
 document.addEventListener('DOMContentLoaded', function () {
@@ -91,7 +92,9 @@ function doImport() {
             let store = tx.objectStore('tabgroups');
             let saveNext = function() {
                 if(tabs.length) {
-                    store.put(tabs.pop()).onsuccess = saveNext
+                    let tdata = tabs.pop()
+                    tdata.urls = tdata.tabs.map(t => t.url);
+                    store.put(tdata).onsuccess = saveNext
                 }
                 else {
                     render()
@@ -120,27 +123,8 @@ function download(result) {
 	a.dispatchEvent(e);
 }
 
-function doExport(process_result=download) {
-    let result = [];
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        let db = event.target.result;
-
-        let tx = db.transaction('tabgroups', 'readonly');
-        let store = tx.objectStore('tabgroups');
-
-        updateCount(store);
-
-        store.openCursor(null, "prev").onsuccess = function(event) {
-            let cursor = event.target.result;
-            if (cursor) {
-                result.push(cursor.value);
-                cursor.continue();
-            }
-            else {
-				process_result(result)
-            }
-        };
-    };
+function doExportDownload() {
+    doExport(download)
     return false;
 }
 
@@ -415,7 +399,7 @@ function initOptions() {
             this.setAttribute('value', this.value);
     };
     document.getElementById("import").onclick = doImport;
-    document.getElementById("export").onclick = doExport;
+    document.getElementById("export").onclick = doExportDownload;
     document.getElementById("gdrive").onclick = doExportGdrive;
 
 }
