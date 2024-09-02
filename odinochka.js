@@ -141,7 +141,10 @@ function doExportDownload() {
 
 
 function doExportGdrive() {
-    doExport(do_gdrive_backup)
+    doExport(async function(data) {
+        await do_gdrive_backup(data);
+        alert("backup completed");
+    })
     return false;
 }
 
