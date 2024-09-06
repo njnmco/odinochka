@@ -1,7 +1,7 @@
 
 export function doExport(process_result) {
     let result = [];
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+    indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
 
         let tx = db.transaction('tabgroups', 'readonly');

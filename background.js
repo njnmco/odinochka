@@ -1,6 +1,10 @@
+import {do_gdrive_backup} from './gdrive.js'
+import {doExport} from './exporter.js'
+
+
 function contextMenus() {
     // Context Menus on button
-    // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT    
+    // Limited to six - see also chrome.contextMenus.ACTION_MENU_TOP_LEVEL_LIMIT
 
     // Context Menus
     chrome.contextMenus.create({
@@ -87,7 +91,6 @@ function cleanTabData(tab) {
             tab.url = tab.url.substr(tab.url.lastIndexOf("&uri=")+5);
     }
     tab.url = tab.url.replace(/([?&])utm_[^=]*=[^&]*/g, "$1");
-    if(tab.faviconUrl && tab.favIconUrl.startsWith("chrome-extension")) delete tab.favIconUrl;
     return tab;
 }
 
@@ -155,7 +158,6 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
                 data.tabs.unshift({
                   title: tab.title,
                   url:tab.url,
-                  //favicon:tab.favIconUrl,
                   pinned: tab.pinned
                 })
             }
@@ -184,6 +186,7 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
             let updateIt = function() {
                 data.urls = data.tabs.map(a => a.url);
                 var req = cursor ? cursor.update(data) : store.put(data);
+                setAlarm(); // if gdrive enabled, trigger on store update.
                 req.onsuccess = closeTabs;
             }
 
@@ -267,6 +270,31 @@ function getData() {
   });
 }
 
+// Automated backup
+
+
+async function handleAlarm(alarm) {
+    doExport(do_gdrive_backup);
+    chrome.action.setBadgeText({text:"drive"});
+    chrome.alarms.clear("gdrive_task")
+}
+
+async function setAlarm() {
+	let {gdrive_id} = await chrome.storage.local.get(["gdrive_id"]);
+    if (!gdrive_id)
+        return;
+
+    chrome.action.setBadgeText({text:""});
+
+    if (!chrome.alarms.onAlarm.hasListeners()) {
+        chrome.alarms.onAlarm.addListener(handleAlarm)
+    }
+
+    let alarm = await chrome.alarms.get("gdrive_task");
+    if (!alarm) {
+        chrome.alarms.create("gdrive_task", {delayInMinutes:60})
+    }
+}
 
 // handle clicks to our extension icon
 chrome.action.onClicked.addListener(tab => command_handler("odinochka_save_selected"));
@@ -309,7 +337,7 @@ async function command_handler(command, showOnSingleTab=false, details=null){
         )
     }
     if (command == "odinochka_save_link") {
-        saveTabs([{title: details.linkUrl, url:details.linkUrl, favicon:"", pinned:false}], false, false)
+        saveTabs([{title: details.linkUrl, url:details.linkUrl, pinned:false}], false, false)
     }
 }
 
@@ -344,4 +372,5 @@ function reloadOdinochka(callback, data={}) {
       t => t.length ? chrome.tabs.sendMessage(t[0].id, data, callback) : callback ? callback() : null  //there should be only one.
     )
 }
+
 

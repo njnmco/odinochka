@@ -4,14 +4,6 @@ const MIME_JSON = "application/json"
 
 export async function do_gdrive_backup(data) {
 
-	console.log("Requesting identity permission.");
-    const granted = await chrome.permissions.request({permissions:['identity']});
-	if (!granted) {
-		console.log("Identity permission not granted");
-    	return;
-    }
-
-
 	console.log("Requesting oauth token");
     const {token} = await chrome.identity.getAuthToken({ interactive: true });
 	if (!token) {

@@ -1,45 +1,55 @@
 {
-    "name": "odinochka",
-    "version": "4.0.0",
-    "description": "Open source tab vault",
-    "permissions": ["contextMenus", "tabs", "tabGroups", "unlimitedStorage", "storage", "favicon"],
-    "optional_permissions": ["identity"],
-    "oauth2": {
-        "client_id": "396036734490-fv1kvvuk8npgtjlmgen926ahsvc18f72.apps.googleusercontent.com",
-        "scopes": [
-            "https://www.googleapis.com/auth/drive.file"
-        ]
+  "name": "odinochka",
+  "version": "4.0.0",
+  "description": "Open source tab vault",
+  "permissions": [
+    "contextMenus",
+    "tabs",
+    "tabGroups",
+    "unlimitedStorage",
+    "storage",
+    "favicon"
+  ],
+  "optional_permissions": [
+    "identity",
+    "alarms"
+  ],
+  "oauth2": {
+    "client_id": "396036734490-fv1kvvuk8npgtjlmgen926ahsvc18f72.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "commands": {
+    "odinochka_show": {
+      "suggested_key": {
+        "default": "Alt+Shift+O"
+      },
+      "description": "Show Odinochka"
     },
-    "background": {
-      "service_worker": "background.js",
-	  "type": "module"
+    "odinochka_save_tab": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Save Tab"
     },
-	"commands": {
-	  "odinochka_show": {
-		"suggested_key": {
-		  "default": "Alt+Shift+O"
-		},
-		"description": "Show Odinochka"
-	  },
-	  "odinochka_save_tab": {
-		"suggested_key": {
-		  "default": "Alt+T"
-		},
-		"description": "Save Tab"
-	  } ,
-	  "odinochka_save_win": {
-		"suggested_key": {
-		  "default": "Alt+O"
-		},
-		"description": "Save Window"
-	  }
-	},
-    "action": {},
-    "icons": {
-        "16": "images/odinochka16.png",
-        "32": "images/odinochka32.png",
-        "48": "images/odinochka48.png",
-        "128": "images/odinochka128.png"
-    },
-    "manifest_version":3,
+    "odinochka_save_win": {
+      "suggested_key": {
+        "default": "Alt+O"
+      },
+      "description": "Save Window"
+    }
+  },
+  "action": {},
+  "icons": {
+    "16": "images/odinochka16.png",
+    "32": "images/odinochka32.png",
+    "48": "images/odinochka48.png",
+    "128": "images/odinochka128.png"
+  },
+  "manifest_version": 3
 }

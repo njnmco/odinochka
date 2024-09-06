@@ -140,7 +140,15 @@ function doExportDownload() {
 }
 
 
-function doExportGdrive() {
+async function doExportGdrive() {
+	console.log("Requesting identity permission.");
+    const granted = await chrome.permissions.request({permissions:['identity', 'alarms']});
+
+	if (!granted) {
+		console.log("Identity permission not granted");
+    	return;
+    }
+
     doExport(async function(data) {
         await do_gdrive_backup(data);
         alert("backup completed");
