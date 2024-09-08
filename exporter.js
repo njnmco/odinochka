@@ -19,5 +19,4 @@ export function doExport(process_result) {
             }
         };
     };
-    return false;
 }
