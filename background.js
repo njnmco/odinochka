@@ -132,6 +132,15 @@ async function saveTabs(tabs, newGroup=true, show=true, tabGroupTitle=null) {
         tabs = tabs.filter(t => !t.audible)
     }
 
+    if(newGroup && !tabGroupTitle && tabs.length > 0) {
+        const google_search = " - Google Search";
+        let first_title = tabs[0].title || "";
+        if (first_title.endsWith(google_search)) {
+            tabGroupTitle = first_title + " Group";
+        }
+
+    }
+
     let o_pattern = /chrome-extension:\/\/[a-z]*\/odinochka.html/;
     tabs = tabs.filter(t => !o_pattern.test(t.url));
 
