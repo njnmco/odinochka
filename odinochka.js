@@ -140,19 +140,25 @@ function doExportDownload() {
 }
 
 
-async function doExportGdrive() {
-	console.log("Requesting identity permission.");
-    const granted = await chrome.permissions.request({permissions:['identity', 'alarms']});
+function doExportGdrive() {
+    let inner = async function(data) {
+        console.log("Checking identity permission.");
+        const granted = await chrome.permissions.request({permissions:['identity', 'alarms']});
 
-	if (!granted) {
-		console.log("Identity permission not granted");
-    	return;
+        if (!granted) {
+            console.log("Identity permission not granted");
+            return false;
+        }
+
+        doExport(function(data) {
+            do_gdrive_backup(data).then(
+              () =>
+                chrome.action.setBadgeText({text:"drive"})
+            )
+        });
+        
     }
-
-    doExport(async function(data) {
-        await do_gdrive_backup(data);
-        alert("backup completed");
-    })
+    inner();
     return false;
 }
 
