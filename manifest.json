@@ -15,6 +15,9 @@
     "alarms",
     "clipboardWrite"
   ],
+  "optional_host_permissions": [
+    "https://api.github.com/"
+  ],
   "oauth2": {
     "client_id": "396036734490-fv1kvvuk8npgtjlmgen926ahsvc18f72.apps.googleusercontent.com",
     "scopes": [

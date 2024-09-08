@@ -1,5 +1,6 @@
 import {do_gdrive_backup} from './gdrive.js'
 import {doExport} from './exporter.js'
+import {toGist} from './gist.js'
 
 const QUERY = parseInt(document.location.search.substring(1)) || null;
 
@@ -708,7 +709,6 @@ function drop(event) {
                 ]});
                 break;
 
-            case "copy-gui":
             case "copy-html":
             case "copy-md":
             case "copy-gist":
@@ -744,12 +744,19 @@ async function doCopy(action) {
 
     console.log("Checking clipboard permission.");
     const granted = await chrome.permissions.request({permissions:['clipboardWrite']});
-
+	if(!granted) {
+		console.error("No clipboard permission!")
+		return;
+	}
 
     // https://stackoverflow.com/a/74216984/986793
     let copyElementToClipboard = function(contents, mimetype) {
+
         let item = {}
         item[mimetype] = new Blob([contents], { type: mimetype});
+        if(mimetype != "text/plain"){
+            item["text/plain"] = new Blob([contents], { type: "text/plain"});
+        }
 
         const clipboardItem = new ClipboardItem(item);
 
@@ -759,7 +766,65 @@ async function doCopy(action) {
         );
     }
 
-    copyElementToClipboard("123213", "text/plain");
+
+    let toHTML = function() {
+        let name = ctx_tgt.querySelector("header").innerText;
+        let tabs = Array.from(ctx_tgt.querySelectorAll("a.tab"));
+
+        let link = (x) => `<li><a href="${x.href}">${x.innerText}</a>`
+
+        return `
+          <h3>${name}</h3>
+          <ul>
+          ${tabs.map(link).join("\n")}
+          </ul>
+        `.replace(/\n\s*/g, "\n")
+    }
+
+    let toMD = function() {
+        let name = ctx_tgt.querySelector("header").innerText;
+        let tabs = Array.from(ctx_tgt.querySelectorAll("a.tab"));
+
+        let link = (x) => `* [${x.innerText}](${x.href})`
+
+        return `
+          ### ${name}
+
+          ${tabs.map(link).join("\n")}
+
+        `.replace(/\n\s*/g, "\n")
+    }
+
+
+    // Now, use those functions;
+
+    var contents, mimetype;
+
+    switch(action) {
+        case "copy-html":
+            contents = toHTML();
+            mimetype = "text/html";
+            break;
+
+        case "copy-md":
+            contents = toMD();
+            mimetype = "text/plain";
+            break;
+
+        case "copy-gist":
+            contents = toMD();
+            contents = await toGist(contents);
+            mimetype = "text/plain";
+			if(!contents) return;
+			chrome.tabs.create({url: contents, active: false});
+
+
+
+            break;
+
+    }
+
+    copyElementToClipboard(contents, mimetype);
 
 
 
@@ -838,6 +903,16 @@ function updateGroupMeta(update) {
     document.getElementById('context').addEventListener('toggle', hideContext);
     document.forms.contextActions.onsubmit = cacall;
 
+document.forms.options.gist.addEventListener('click', function(event) {
+    event.preventDefault();
+
+    let ghpat = prompt("GHPAT");
+    if (ghpat) {
+        chrome.storage.local.set({ghpat:ghpat});
+    }
+
+    return false;
+});
 
 
 
