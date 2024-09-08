@@ -12,7 +12,8 @@
   ],
   "optional_permissions": [
     "identity",
-    "alarms"
+    "alarms",
+    "clipboardWrite"
   ],
   "oauth2": {
     "client_id": "396036734490-fv1kvvuk8npgtjlmgen926ahsvc18f72.apps.googleusercontent.com",

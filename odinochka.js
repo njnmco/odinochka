@@ -95,6 +95,8 @@ function doImport() {
 
     let reader = new FileReader();
 
+    // TODO gzip
+
     reader.onload = function(event) {
         let tabs = JSON.parse(event.target.result);
 
@@ -706,18 +708,14 @@ function drop(event) {
                 ]});
                 break;
 
-            // Update saved group metadata
-
             case "copy-gui":
             case "copy-html":
             case "copy-md":
             case "copy-gist":
                 doCopy(action);
                 break;
-        }
 
-        // Saved group metadata changes
-        switch(action) {
+            // Saved group metadata changes
             case "rename":
                 let header = ctx_tgt.querySelector("header");
                 let oldname = header.innerText.replace(/ @ .*/, '');
@@ -741,6 +739,31 @@ function drop(event) {
 
         return false; // Cancels the form submission
     }
+
+async function doCopy(action) {
+
+    console.log("Checking clipboard permission.");
+    const granted = await chrome.permissions.request({permissions:['clipboardWrite']});
+
+
+    // https://stackoverflow.com/a/74216984/986793
+    let copyElementToClipboard = function(contents, mimetype) {
+        let item = {}
+        item[mimetype] = new Blob([contents], { type: mimetype});
+
+        const clipboardItem = new ClipboardItem(item);
+
+        navigator.clipboard.write([clipboardItem]).then(
+          _ => console.log("clipboard.write() Ok"),
+          error => alert(error)
+        );
+    }
+
+    copyElementToClipboard("123213", "text/plain");
+
+
+
+}
 
 function updateGroupMeta(update) {
     let ts = parseInt(ctx_tgt.id);
@@ -786,13 +809,12 @@ function updateGroupMeta(update) {
 
                     if(toKeep.length == 0) {
                         removeAndUpdateCount(store.delete(ts), ctx_tgt);
+                        return;
                     } else {
                         data.tabs = toKeep;
                         data.urls = data.tabs.map(t => t.url);
-                        removeAndUpdateCount(store.put(data), ctx_tgt);
                     }
 
-                    return;
             }
 
             let request = store.put(data);
