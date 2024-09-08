@@ -168,9 +168,8 @@ function doExportGdrive() {
 function groupclick(event) {
     let me = event.target;
     let ts = parseInt(event.target.parentNode.id);
-    let shiftclick = event.shiftKey
 
-    if (event.clientX > me.offsetLeft + me.offsetWidth - 10) {
+    if (false) {
         var code = me.parentNode.innerHTML.replace(/draggable="true"|class="tab"|target="_blank"|style="[^"]*"/g, '')
 
         chrome.tabs.create({url: 'data:text/html;charset=utf-8,' +
@@ -183,29 +182,11 @@ function groupclick(event) {
 
         return false;
     }
-
-    if( event.clientX > event.target.offsetLeft && !shiftclick) {
-        // if inside box, make editable
-        if(me.contentEditable == "false"){
-              me.oldText = me.textContent;
-              me.contentEditable = "true";
-              me.focus();
-        }
-        return;
-    }
-
-    if(!shiftclick) { // if not shift, then was x
-        if(!confirm("Delete this group?")) return;
-    }
-
-
-    // delete it
+    
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
         let tx = db.transaction('tabgroups', 'readwrite');
         let store = tx.objectStore('tabgroups');
-
-
 
         store.get(ts).onsuccess = function(event) {
             var data = event.target.result;
@@ -229,14 +210,11 @@ function groupclick(event) {
             // smart selection
             var group = document.forms["options"].elements["group"].value;
             let restore = document.forms["options"].elements["restore"].value;
-            let locked = data.name.indexOf("lock") > -1;
+            let locked = data.locked;
 
             data.tabs = toShow;
 
-            if(!shiftclick) {
-                // if not shift, then was x
-            }
-            else if(group == 'new') {
+            if(group == 'new') {
                 newWindow(data);
             }
             else if(group == 'current') {
@@ -289,44 +267,6 @@ function groupclick(event) {
 
 }
 
-
-function groupblur(event) {
-    var me = event.target;
-    var ts = parseInt(event.target.parentNode.id);
-
-    var trimmer = function(s) {
-        var i = s.indexOf("@");
-        if(i != -1) s = s.substr(0, i);
-        return s.trim()
-    }
-
-    if(me.contentEditable != "true") {
-        return;
-    }
-
-    me.contentEditable = "false"
-
-    var newtxt = trimmer(me.textContent);
-    var oldtxt = trimmer(me.oldText);
-
-    if(newtxt == oldtxt) return;
-
-
-    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
-        var db = event.target.result;
-
-        var tx = db.transaction('tabgroups', 'readwrite');
-        var store = tx.objectStore('tabgroups');
-
-        store.get(ts).onsuccess = function(event) {
-            var data = event.target.result;
-            data.name = newtxt;
-            store.put(data).onsuccess = (e => renderHeader(data, me));
-        }
-
-    }
-
-}
 
 function removeAndUpdateCount(request, me) {
     request.onsuccess = function(event) {
@@ -473,8 +413,6 @@ function divclickhandler(event) {
             return target.tagName != 'A' || tabclick(event);
         case 'dblclick':
             return target.tagName != 'HEADER' || groupclick(event);
-        case 'blur':
-            return target.tagName != 'HEADER' || groupblur(event);
         case 'dragstart':
             target.id = 'drag'
             event.dataTransfer.setData("text/plain", "foo");
@@ -498,7 +436,6 @@ function renderHeader(data, header=null) {
     header.textContent = `${data.name} @ ${fmtDate(data.ts)}`;
 
     header.className = "tab";
-    header.contentEditable = false;
     header.draggable = true;
     header.setAttribute('tabindex', '0');
     return header;
@@ -539,7 +476,6 @@ function render() {
     // NB https://stackoverflow.com/a/5423029/986793 must use 'onclick' etc to cancel events via return value
     for(var ev of ['click', 'dblclick', 'dragstart', 'dragend','drop'])
         groupdiv['on'+ev]= divclickhandler
-    groupdiv.addEventListener('blur', divclickhandler, true); // onblur won't trigger, but can capture?
 
 
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
@@ -838,15 +774,25 @@ function updateGroupMeta(update) {
                         console.error("Delete callend on locked group.");
                         break;
                     }
-                    // the tricky one.
+                    // the tricky one. TODO!
+                    let snode = ctx_tgt.querySelector("a.tab");
+                    let i = 0, toKeep = [];
+                    while(snode) {
+                        if(window.getComputedStyle(snode).display == 'none') {
+                            toKeep.push(data.tabs[i]);
+                        }
+                        snode = snode.nextSibling; i++;
+                    }
 
                     if(toKeep.length == 0) {
                         removeAndUpdateCount(store.delete(ts), ctx_tgt);
-                        return;
+                    } else {
+                        data.tabs = toKeep;
+                        data.urls = data.tabs.map(t => t.url);
+                        removeAndUpdateCount(store.put(data), ctx_tgt);
                     }
 
-
-                    break;
+                    return;
             }
 
             let request = store.put(data);
