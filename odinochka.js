@@ -1,14 +1,17 @@
 import {do_gdrive_backup} from './gdrive.js'
 import {doExport} from './exporter.js'
 
+const QUERY = parseInt(document.location.search.substring(1)) || null;
+
 // defer render til loaded, h/t snte
 document.addEventListener('DOMContentLoaded', function () {
     render()
     initOptions()
-    closeOthers()
+    if(!QUERY) closeOthers();
 });
 
-
+// Helpers for new tabs
+// --------------------
 
 function newWindow(data) {
   chrome.windows.create({url: data.urls}, function(w) {
@@ -519,6 +522,10 @@ function renderGroup(data, ddiv=null) {
     ddiv.innerHTML = '';
     ddiv.className = 'group';
 
+    if (data.locked) ddiv.classList.add("locked");
+    if (data.collapsed) ddiv.classList.add("collapsed");
+
+
     ddiv.append(renderHeader(data), ... data.tabs.map(x => renderTab(x)));
 
     return ddiv;
@@ -534,6 +541,7 @@ function render() {
         groupdiv['on'+ev]= divclickhandler
     groupdiv.addEventListener('blur', divclickhandler, true); // onblur won't trigger, but can capture?
 
+
     window.indexedDB.open("odinochka", 5).onsuccess = function(event){
         let db = event.target.result;
 
@@ -542,7 +550,8 @@ function render() {
 
         updateCount(store);
 
-        store.openCursor(null, "prev").onsuccess = function(event) {
+        let request = store.openCursor(QUERY, "prev")
+        request.onsuccess = function(event) {
             let cursor = event.target.result;
             if (cursor) {
                 cursor.continue();
@@ -558,6 +567,15 @@ function render() {
                 // }
 
 
+                // If query key provided to pop out a single group,
+                // add name to main title
+                if(QUERY) {
+                    document.body.setAttribute("query", QUERY);
+                    document.title += " " + data.name;
+                    document.querySelector("body header h1").innerText += ": " + data.name;
+                }
+
+
                 groupdiv.appendChild(renderGroup(data));
             }
         };
@@ -567,7 +585,7 @@ function render() {
 
 function update(data) {
     let groupdiv = document.getElementById("groups");
-    let child = groupdiv.children.length ? groupdiv.children[0] : null;
+    let child = groupdiv.children?.item(0);
 
     if(child && data.ts == child.id) {
         groupdiv.replaceChild(renderGroup(data), child);
@@ -707,3 +725,151 @@ function drop(event) {
 
     };
 }
+
+
+// ============================================
+// Context menu for saved group options
+// ============================================
+
+	const CTX_TGT_CLASS = "context-target";
+    var ctx_tgt = null;
+
+    function hideContext(event) {
+        // console.log(event)
+        if (event.newState == 'closed') {
+            ctx_tgt?.classList.remove(CTX_TGT_CLASS);
+        }
+	}
+
+    function coordinate(event) {
+        // https://www.geeksforgeeks.org/javascript-coordinates-of-mouse/
+		// console.log(event);
+		if (event.target?.tagName == "HEADER") {
+            let ctx = document.getElementById("context");
+			event.preventDefault();
+			ctx.style.left = `${event.clientX}px`;
+			ctx.style.top  = `${event.clientY}px`;
+			//ctx.style.display = "unset";
+            ctx.showPopover();
+
+            ctx_tgt?.classList.remove(CTX_TGT_CLASS); // there can be only one!
+            ctx_tgt = event.target.parentElement;
+			ctx_tgt.classList.add(CTX_TGT_CLASS);
+		}
+    }
+
+    function cacall(event) {
+        let action = event.submitter?.id;
+        let update = {action: action};
+
+        switch(action) {
+
+            case "popout":
+                newTabs({tabs:[
+                     {url: "odinochka.html?" + ctx_tgt.id, pinned: false, active: false}
+                ]});
+                break;
+
+            // Update saved group metadata
+
+            case "copy-gui":
+            case "copy-html":
+            case "copy-md":
+            case "copy-gist":
+                doCopy(action);
+                break;
+        }
+
+        // Saved group metadata changes
+        switch(action) {
+            case "rename":
+                let header = ctx_tgt.querySelector("header");
+                let oldname = header.innerText.replace(/ @ .*/, '');
+                let newname = prompt("New name:",oldname);
+                if (!newname) break;
+                console.log(newname);
+                update.name = newname;
+            case "lock":
+            case "unlock":
+            case "collapse":
+            case "uncollapse":
+            case "delete":
+                //FALL THROUGH
+                updateGroupMeta(update)
+        }
+
+
+
+		
+        event.target?.parentElement.hidePopover();
+
+        return false; // Cancels the form submission
+    }
+
+function updateGroupMeta(update) {
+    let ts = parseInt(ctx_tgt.id);
+    window.indexedDB.open("odinochka", 5).onsuccess = function(event){
+        let db = event.target.result;
+        let tx = db.transaction('tabgroups', 'readwrite');
+        let store = tx.objectStore('tabgroups');
+
+        store.get(ts).onsuccess = function(event) {
+            var data = event.target.result;
+
+
+            switch(update.action) {
+                case "rename":
+                    data.name = update.name;    break;
+
+                case "lock":
+                    data.locked = true;         break;
+
+                case "unlock":
+                    delete data['locked'];      break;
+
+                case "collapse":
+                    data.collapsed = true;      break;
+
+                case "uncollapse":
+                    delete data['collapsed'];   break;
+
+                case "delete":
+                    if(data.locked) {
+                        console.error("Delete callend on locked group.");
+                        break;
+                    }
+                    // the tricky one.
+
+                    if(toKeep.length == 0) {
+                        removeAndUpdateCount(store.delete(ts), ctx_tgt);
+                        return;
+                    }
+
+
+                    break;
+            }
+
+            let request = store.put(data);
+            
+            request.onsuccess = (event) => {
+                renderGroup(data, ctx_tgt);
+                if(update.action == "delete") updateCount(store);
+            };
+
+
+
+
+        }
+    }
+
+}
+
+
+
+	document.getElementById('groups').addEventListener('contextmenu', coordinate);
+    document.getElementById('context').addEventListener('toggle', hideContext);
+    document.forms.contextActions.onsubmit = cacall;
+
+
+
+
